@@ -305,10 +305,12 @@ function setView(view){
   renderCurrentView();
 }
 function linkMatchesEvent(e){if(e.link_verificato!==true||!safeURL(e.link))return false;const a=new Set(titleTokens(e.titolo)),b=new Set(titleTokens(e.fonte_nome||''));let n=0;a.forEach(w=>{if(b.has(w))n++;});const min=Math.min(a.size,b.size),score=n/(a.size+b.size-n||1);return n>=2&&(score>=0.35||n===min);}
+function importLabel(s){return /^(importazione json|eventi importati)$/i.test(String(s||'').trim());}
+function eventSearchURL(e){const title=String(e.titolo||''),place=String(e.luogo||''),city=String(currentCity||'').trim(),key=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('it').replace(/[^a-z0-9]+/g,' ').trim(),cityKey=key(city);const parts=[title,place];if(cityKey&&!importLabel(city)&&!key(place).includes(cityKey)&&!key(title).includes(cityKey))parts.push(city);return 'https://www.google.com/search?q='+encodeURIComponent(parts.filter(Boolean).join(' '));}
 function eventCard(e){
   const date=new Date(e.data_iso+'T12:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
   const mapsURL='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(e.luogo+', '+currentCity);
-  const searchURL='https://www.google.com/search?q='+encodeURIComponent(e.titolo+' '+e.luogo+' '+currentCity);
+  const searchURL=eventSearchURL(e);
   const verified=linkMatchesEvent(e);
   const source=verified?`<a class="official" href="${escapeHTML(e.link)}" target="_blank" rel="noopener noreferrer">Fonte verificata</a>`:e.link?`<a href="${searchURL}" target="_blank" rel="noopener noreferrer">Cerca la fonte</a>`:'';
   const isFav=getFavs().some(x=>eventKey(x)===eventKey(e));
@@ -326,7 +328,7 @@ function renderCurrentView(){
 }
 function renderCalendar(){
   const groups={};visibleEvents.forEach(e=>(groups[e.data_iso]??=[]).push(e));
-  $('resultsContainer').innerHTML=Object.keys(groups).sort().map(day=>`<section class="calendar-day"><h3>${new Date(day+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h3>${groups[day].map(e=>{const url=linkMatchesEvent(e)?e.link:'https://www.google.com/search?q='+encodeURIComponent(e.titolo+' '+e.luogo+' '+currentCity);return `<div class="calendar-event"><div class="calendar-time">${escapeHTML(e.ora||'—')}</div><div><a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(e.titolo)}</a><div class="small muted">${escapeHTML(e.categoria)} · ${escapeHTML(e.luogo)}</div></div></div>`;}).join('')}</section>`).join('');
+  $('resultsContainer').innerHTML=Object.keys(groups).sort().map(day=>`<section class="calendar-day"><h3>${new Date(day+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h3>${groups[day].map(e=>{const url=linkMatchesEvent(e)?e.link:eventSearchURL(e);return `<div class="calendar-event"><div class="calendar-time">${escapeHTML(e.ora||'—')}</div><div><a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(e.titolo)}</a><div class="small muted">${escapeHTML(e.categoria)} · ${escapeHTML(e.luogo)}</div></div></div>`;}).join('')}</section>`).join('');
 }
 async function renderMap(){
   const root=$('resultsContainer');
@@ -363,11 +365,11 @@ async function importArchiveJSON(event){
   try{
     const parsed=JSON.parse(await file.text());let sessions=[];
     if(Array.isArray(parsed)&&parsed.length&&parsed.every(x=>x&&Array.isArray(x.events)))sessions=parsed;
-    else if(Array.isArray(parsed))sessions=[{city:$('city').value.trim()||'Importazione JSON',events:parsed}];
+    else if(Array.isArray(parsed))sessions=[{city:$('city').value.trim(),events:parsed}];
     else if(parsed&&Array.isArray(parsed.events))sessions=[parsed];
     else throw new Error('Il file deve contenere un elenco di eventi o un oggetto con il campo "events".');
     const now=Date.now(),imported=[];let eventCount=0;
-    sessions.forEach((session,i)=>{const events=normalizeEvents(session.events,[]);if(!events.length)return;const candidateDate=new Date(session.date||session.savedAt||Date.now()),date=Number.isNaN(candidateDate.getTime())?new Date().toISOString():candidateDate.toISOString();imported.push({id:now+i,city:String(session.city||$('city').value.trim()||'Importazione JSON'),date,count:events.length,events});eventCount+=events.length;});
+    sessions.forEach((session,i)=>{const events=normalizeEvents(session.events,[]);if(!events.length)return;const candidateDate=new Date(session.date||session.savedAt||Date.now()),date=Number.isNaN(candidateDate.getTime())?new Date().toISOString():candidateDate.toISOString(),savedCity=String(session.city||'').trim(),typedCity=$('city').value.trim(),eventPlace=events.find(e=>e.luogo&&e.luogo!=='Luogo da verificare')?.luogo,city=(!importLabel(savedCity)&&savedCity)||typedCity||eventPlace||'Eventi importati';imported.push({id:now+i,city,date,count:events.length,events});eventCount+=events.length;});
     if(!imported.length)throw new Error('Non ho trovato eventi con titolo e data validi nel file.');
     const stored=readStoredJSON(ARCHIVE_KEY,[]),archive=Array.isArray(stored)?stored:[];
     try{localStorage.setItem(ARCHIVE_KEY,JSON.stringify([...imported,...archive].slice(0,20)));}catch(e){throw new Error('Spazio browser insufficiente per salvare i dati importati.');}
