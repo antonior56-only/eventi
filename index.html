@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Eventi in Città</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{--primary:#2563eb;--primary-dark:#1d4ed8;--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#64748b;--border:#dce4ee;--green:#15803d;--amber:#a16207;--red:#b91c1c;--radius:14px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px}
+.container{max-width:1180px;margin:auto}header{text-align:center;margin:8px 0 26px}.header-tools{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:14px}.update-banner{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;padding:12px 14px;border-radius:10px;margin:10px 0 16px}.update-banner p{margin:0}.update-banner .actions{margin-left:auto}.author{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}h1{font-size:clamp(1.8rem,4vw,2.5rem);margin:4px 0}.subtitle{color:var(--muted);margin:0}
+.panel,.event-card,.toolbar,.archive-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 3px 12px #0f172a08}
+.panel{padding:20px;margin-bottom:18px}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:15px}.field{display:flex;flex-direction:column;gap:6px}label{font-size:.86rem;font-weight:700}
+input,select{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:9px;background:#fff;color:var(--text);font:inherit;min-width:0}input:focus,select:focus{outline:2px solid #93c5fd;border-color:var(--primary)}
+.actions,.toolbar-actions,.tabs{display:flex;gap:9px;flex-wrap:wrap;align-items:center}button,.button-link{border:0;border-radius:9px;background:var(--primary);color:white;padding:10px 15px;font:600 .92rem system-ui;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}button:hover,.button-link:hover{background:var(--primary-dark)}button.secondary{background:#e8eef6;color:#243247}button.secondary:hover{background:#d8e2ee}button:disabled{opacity:.55;cursor:not-allowed}.right{justify-content:flex-end}
+.toolbar{padding:12px 14px;margin:16px 0;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.toolbar .field{min-width:170px;flex:1}.toolbar-actions button{font-size:.82rem;padding:8px 11px}
+.tabs{margin:18px 0 12px;border-bottom:1px solid var(--border);gap:5px}.tab{background:transparent;color:var(--muted);border-radius:8px 8px 0 0}.tab:hover{background:#eaf1fb;color:var(--text)}.tab.active{background:#dbeafe;color:#1d4ed8}
+.events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:15px}.event-card{padding:17px;display:flex;flex-direction:column;gap:10px;min-width:0}.event-card h3{font-size:1.08rem;line-height:1.3;margin:0}.badge{align-self:flex-start;background:#eff6ff;color:#1d4ed8;padding:4px 9px;border-radius:99px;font-size:.72rem;font-weight:800}.meta{display:grid;gap:4px;color:var(--muted);font-size:.87rem}.description{margin:0;font-size:.92rem}.event-footer{display:flex;gap:7px;flex-wrap:wrap;margin-top:auto}.event-footer a{font-size:.82rem;text-align:center;text-decoration:none;color:#1d4ed8;background:#eff6ff;padding:8px 10px;border-radius:8px;flex:1}.event-footer a.official{background:#ecfdf5;color:#166534}
+.status{padding:34px 15px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--border);border-radius:12px}.status.error{color:var(--red)}.status small{display:block;margin-top:7px}
+.verify{font-size:.75rem;font-weight:700}.verify.ok{color:var(--green)}.verify.partial{color:var(--amber)}.verify.none{color:var(--red)}
+#map{height:480px;border-radius:12px;border:1px solid var(--border);z-index:1}.map-note{color:var(--muted);font-size:.84rem;margin:8px 0 0}
+.calendar-day{background:#fff;border:1px solid var(--border);border-radius:12px;margin:10px 0;overflow:hidden}.calendar-day h3{margin:0;padding:10px 14px;background:#eef4fb;font-size:.95rem}.calendar-event{padding:11px 14px;border-top:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}.calendar-time{min-width:65px;color:var(--primary);font-weight:800}.calendar-event a{color:var(--text);font-weight:700;text-decoration:none}
+.archive-panel{padding:15px;margin-top:18px}.archive-item{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border)}.archive-item:first-of-type{border-top:0}
+.card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.fav{background:transparent!important;color:#d97706!important;font-size:1.3rem;padding:0 4px;line-height:1}.fav:hover{transform:scale(1.15)}#sourcesBox{margin:6px 0 10px}#sourcesBox summary{cursor:pointer}#sourcesBox a{color:var(--primary)}.hidden{display:none!important}.muted{color:var(--muted)}.small{font-size:.82rem}.notice{background:#fffbeb;border:1px solid #fde68a;color:#854d0e;padding:10px 12px;border-radius:9px;font-size:.84rem;margin-top:12px}.notice a{color:#1d4ed8;font-weight:700}dialog{width:min(460px,calc(100% - 28px));border:1px solid var(--border);border-radius:14px;padding:22px;color:var(--text);box-shadow:0 18px 50px #0f172a40}dialog::backdrop{background:#0f172a80}dialog h2{margin:0 0 8px;font-size:1.25rem}dialog a{color:var(--primary)}
+@media(max-width:600px){body{padding:12px}.panel{padding:15px}.toolbar{align-items:stretch}.toolbar-actions{width:100%}.toolbar-actions button{flex:1}.calendar-event{gap:7px}.calendar-time{min-width:52px}}
+@media print{.fav,.quota-line,#sourcesBox{display:none!important}body{background:white;padding:0}.no-print,header .author,.panel,.toolbar,.tabs,.archive-panel,#map{display:none!important}.container{max-width:none}.event-card{break-inside:avoid;box-shadow:none}.events-grid{display:block}.event-card{margin-bottom:10px}.event-footer a{color:#000;background:none;text-decoration:underline}}
+</style>
+</head>
+<body>
+<div class="container">
+<header><div class="author">Realizzato da Antonio R.</div><h1>Eventi in Città</h1><p class="subtitle">Scopri eventi, iniziative e appuntamenti nel periodo scelto</p><div class="header-tools no-print"><a class="button-link secondary" href="./manuale.html">Manuale</a><button id="installBtn" class="secondary" type="button">Installa app</button></div></header>
+<div id="updateNotice" class="update-banner hidden no-print" role="status" aria-live="polite"><p>È disponibile una nuova versione dell’app.</p><div class="actions"><button id="updateNowBtn" type="button">Aggiorna ora</button><button id="updateLaterBtn" class="secondary" type="button">Più tardi</button></div></div>
+
+<section class="panel no-print">
+  <div class="form-grid">
+    <div class="field"><label for="city">Città di riferimento</label><input id="city" type="text" placeholder="Es. Nonantola, Bologna, Modena"></div>
+    <div class="field"><label for="radius">Raggio indicativo di ricerca</label><select id="radius"><option value="10">10 km</option><option value="20">20 km</option><option value="30" selected>30 km</option><option value="50">50 km</option></select></div>
+    <div class="field"><label for="categoryFilter">Categoria da cercare</label><select id="categoryFilter"><option value="Tutti">Tutte le categorie</option><option>Concerti</option><option>Teatro</option><option>Mostre</option><option>Sagre/Cibo</option><option>Mercatini</option><option>Escursioni</option><option>Passeggiate</option><option>Ciclismo</option><option>Sport</option><option>Cultura</option><option>Fiere</option><option>Conferenze</option><option>Altro</option></select></div>
+    <div class="field"><label for="searchMode">Modalità di ricerca</label><select id="searchMode"><option value="standard" selected>Standard (3 richieste, più completa)</option><option value="fast">Veloce (1 richiesta, meno quota)</option></select></div>
+    <div class="field"><label for="periodDays">Periodo</label><select id="periodDays"><option value="7">Prossimi 7 giorni</option><option value="14" selected>Prossimi 14 giorni</option><option value="30">Prossimi 30 giorni</option></select></div>
+    <div class="field"><label for="maxResults">Numero massimo complessivo di eventi</label><select id="maxResults"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option><option>40</option></select></div>
+  </div>
+  <div class="actions right"><button id="refreshBtn" class="secondary" onclick="fetchEvents(true)" title="Rifa la ricerca ignorando i risultati già salvati oggi">↻ Aggiorna</button><button id="searchBtn" onclick="fetchEvents(false)">🔎 Cerca eventi</button></div>
+  <p id="quotaInfo" class="muted small quota-line" style="margin:8px 0 0;text-align:right"></p>
+  <div class="notice">Inserisci <a href="#apiDialog" onclick="openApiDialog(event)">la tua chiave API personale</a> che viene salvata solo nel browser di questo dispositivo. Le richieste consumano la tua quota; non condividerla.</div>
+  <dialog id="apiDialog" aria-labelledby="apiDialogTitle"><h2 id="apiDialogTitle">Chiave API Gemini</h2><p class="muted small">La chiave viene salvata in questo browser e usata per le richieste di questa app.</p><div class="field"><label for="apiKey">La tua chiave API</label><input type="password" id="apiKey" autocomplete="off" placeholder="Incolla qui la tua chiave API"></div><p class="small"><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Ottieni una chiave API in Google AI Studio ↗</a></p><div class="actions right"><button type="button" class="secondary" onclick="closeApiDialog()">Chiudi</button></div></dialog>
+</section>
+
+<section id="filterBar" class="toolbar no-print hidden">
+  <div class="field"><label for="localSearch">Parola chiave</label><input id="localSearch" type="search" placeholder="Titolo, descrizione, luogo…" oninput="applyFilters()"></div>
+  <div class="field"><label for="localCategory">Categoria</label><select id="localCategory" onchange="applyFilters()"><option value="Tutti">Tutte le categorie</option></select></div>
+  <div class="field"><label for="dateFilter">Giorno</label><select id="dateFilter" onchange="applyFilters()"><option value="Tutti">Tutti i giorni</option></select></div>
+  <div class="toolbar-actions">
+    <button class="secondary" onclick="shareWhatsApp()">WhatsApp</button><button class="secondary" onclick="exportJSON()">JSON</button><button class="secondary" onclick="exportICS()">Calendario ICS</button><button class="secondary" onclick="window.print()">Stampa / PDF</button>
+  </div>
+</section>
+
+<div id="summary" class="muted small"></div>
+<details id="sourcesBox" class="muted small hidden"><summary>Fonti consultate da Gemini</summary><div id="sourcesList"></div></details>
+<nav class="tabs no-print" id="tabs">
+  <button class="tab active" data-view="cards" onclick="setView('cards')">Eventi</button>
+  <button class="tab" data-view="calendar" onclick="setView('calendar')">Calendario</button>
+  <button class="tab" data-view="map" onclick="setView('map')">Mappa</button>
+  <button class="tab" data-view="favs" onclick="setView('favs')">⭐ Preferiti</button>
+  <button class="tab" data-view="archive" onclick="setView('archive')">Archivio ricerche</button>
+</nav>
+<main id="resultsContainer"><div class="status">Inserisci una città e premi “Cerca eventi” per iniziare.</div></main>
+<section id="archivePanel" class="archive-panel hidden"></section>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+'use strict';
+let rawEventsData=[], visibleEvents=[], currentCity='', currentView='cards', map=null, mapMarkers=[], cityCoords=null;
+const $=id=>document.getElementById(id);
+const CATEGORIES=['Concerti','Teatro','Mostre','Sagre/Cibo','Mercatini','Escursioni','Passeggiate','Ciclismo','Sport','Cultura','Fiere','Conferenze','Altro'];
+const CACHE_KEY='eventi_citta_cache_v2', ARCHIVE_KEY='eventi_citta_archive_v2', GEO_KEY='eventi_citta_geo_v1';
+const QUOTA_KEY='eventi_quota_v1', QUOTA_LIMIT=20, SEARCH_CACHE_KEY='eventi_search_cache_v1', FAV_KEY='eventi_favs_v1';
+function todayKey(){return dateISO(new Date());}
+function quotaGet(){try{const q=JSON.parse(localStorage.getItem(QUOTA_KEY)||'null');if(q&&q.day===todayKey())return q.count||0;}catch{}return 0;}
+function quotaSet(n){try{localStorage.setItem(QUOTA_KEY,JSON.stringify({day:todayKey(),count:n}));}catch{}quotaRender();}
+function quotaInc(){quotaSet(quotaGet()+1);}
+function quotaRender(){const el=$('quotaInfo');if(!el)return;const n=quotaGet();el.textContent=`Richieste Gemini fatte oggi da questa app: ${n} / ${QUOTA_LIMIT} (stima; il conteggio ufficiale è in Google AI Studio)`;el.style.color=n>=QUOTA_LIMIT-3?'#b91c1c':'';}
+function readStoredJSON(key,fallback){try{const v=JSON.parse(localStorage.getItem(key)||'null');return v??fallback;}catch{return fallback;}}
+function searchCacheGet(k){const all=readStoredJSON(SEARCH_CACHE_KEY,{});return all&&typeof all==='object'&&!Array.isArray(all)?all[k]||null:null;}
+function searchCacheSet(k,v){try{const stored=readStoredJSON(SEARCH_CACHE_KEY,{}),all=stored&&typeof stored==='object'&&!Array.isArray(stored)?stored:{},t=todayKey();Object.keys(all).forEach(x=>{if(!x.endsWith('|'+t))delete all[x];});all[k]=v;localStorage.setItem(SEARCH_CACHE_KEY,JSON.stringify(all));}catch(e){console.warn('Cache ricerche non salvata',e);}}
+function uniqueSources(list){const seen=new Set();return list.filter(x=>x.url&&!seen.has(x.url)&&seen.add(x.url)).slice(0,20).map(x=>({url:x.url,title:x.title}));}
+function renderSources(list){const box=$('sourcesBox');if(!list||!list.length){box.classList.add('hidden');return;}$('sourcesList').innerHTML=list.map(x=>`<div><a href="${escapeHTML(x.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(x.title)}</a></div>`).join('');box.classList.remove('hidden');}
+function eventKey(e){return (String(e.titolo)+'|'+e.data_iso).toLowerCase();}
+function getFavs(){const v=readStoredJSON(FAV_KEY,[]);return Array.isArray(v)?v:[];}
+function toggleFav(k){const favs=getFavs();const i=favs.findIndex(x=>eventKey(x)===k);if(i>=0)favs.splice(i,1);else{const e=rawEventsData.find(x=>eventKey(x)===k);if(e)favs.unshift(JSON.parse(JSON.stringify(e)));}try{localStorage.setItem(FAV_KEY,JSON.stringify(favs));}catch{}renderCurrentView();}
+function shareText(){const by={};visibleEvents.forEach(e=>(by[e.data_iso]??=[]).push(e));let t=`📍 Eventi a ${currentCity}\n`;Object.keys(by).sort().forEach(d=>{t+=`\n📅 ${new Date(d+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}\n`;by[d].forEach(e=>{t+=`• ${e.ora?e.ora+' – ':''}${e.titolo} (${e.luogo})\n`;});});return t.trim();}
+function shareWhatsApp(){if(!visibleEvents.length)return alert('Non ci sono eventi da condividere.');let t=shareText();if(t.length>3500)t=t.slice(0,3450).replace(/\n[^\n]*$/,'')+'\n…';window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank','noopener');}
+function openApiDialog(event){event.preventDefault();$('apiKey').value=readStoredJSON('gemini_api_key','')||'';const d=$('apiDialog');if(d.showModal)d.showModal();else d.setAttribute('open','');}
+function closeApiDialog(){const d=$('apiDialog');if(d.close)d.close();else d.removeAttribute('open');}
+document.addEventListener('DOMContentLoaded',()=>{
+  $('apiKey').value=readStoredJSON('gemini_api_key','')||'';
+  $('city').value=readStoredJSON('gemini_last_city','')||'';
+  $('radius').value=readStoredJSON('eventi_radius','30')||'30';
+  quotaRender();
+  $('apiKey').addEventListener('input',e=>{try{localStorage.setItem('gemini_api_key',e.target.value.trim());}catch{}});
+  $('city').addEventListener('input',e=>{try{localStorage.setItem('gemini_last_city',e.target.value.trim());}catch{}});
+  $('radius').addEventListener('change',e=>{try{localStorage.setItem('eventi_radius',e.target.value);}catch{}});
+  const cache=readStoredJSON(CACHE_KEY,null);if(Array.isArray(cache?.events)&&cache.events.length){rawEventsData=cache.events;currentCity=cache.city||$('city').value;showResults();}
+});
+function dateISO(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function dateRange(){const a=new Date();a.setHours(0,0,0,0);const b=new Date(a);b.setDate(b.getDate()+(Number(($('periodDays')||{}).value)||14)-1);return {start:dateISO(a),end:dateISO(b)};}
+function escapeHTML(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function safeURL(value){try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)?u.href:null;}catch{return null;}}
+function normalizeCategory(c){const s=String(c||'Altro').toLowerCase();return CATEGORIES.find(x=>x.toLowerCase()===s)||'Altro';}
+function parseModelJSON(text){
+  let s=String(text||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
+  try{return JSON.parse(s);}catch{}
+  const m=s.match(/\[\s*\{/);const a=m?m.index:-1,b=s.lastIndexOf('}]');
+  if(a<0||b<a)throw new Error('La risposta Gemini non contiene un array JSON valido.');
+  try{return JSON.parse(s.slice(a,b+2));}catch(e){
+    // Recupero: estrae gli oggetti completi anche se l'array è troncato o malformato
+    const objs=[];const re=/\{[^{}]*\}/g;let x;while((x=re.exec(s.slice(a)))){try{objs.push(JSON.parse(x[0]));}catch{}}
+    if(objs.length)return objs;throw e;}
+}
+function collectGrounding(candidate){
+  const chunks=candidate?.groundingMetadata?.groundingChunks||[];
+  return chunks.map(c=>c.web).filter(w=>w?.uri).map(w=>({url:safeURL(w.uri),title:w.title||new URL(w.uri).hostname})).filter(x=>x.url);
+}
+function validISODate(value){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(value)))return false;const d=new Date(value+'T00:00:00');return !Number.isNaN(d.getTime())&&dateISO(d)===value;}
+function parseEventDate(value){
+  if(!value)return null;
+  const s=String(value).trim();
+  let m=s.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
+  if(m){const d=`${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;return validISODate(d)?d:null;}
+  m=s.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](20\d{2})\b/);
+  if(m){const d=`${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;return validISODate(d)?d:null;}
+  const months={gennaio:'01',febbraio:'02',marzo:'03',aprile:'04',maggio:'05',giugno:'06',luglio:'07',agosto:'08',settembre:'09',ottobre:'10',novembre:'11',dicembre:'12'};
+  m=s.toLocaleLowerCase('it').match(/\b(\d{1,2})\s+(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\s+(20\d{2})\b/);
+  if(m){const d=`${m[3]}-${months[m[2]]}-${String(m[1]).padStart(2,'0')}`;return validISODate(d)?d:null;}
+  // Senza anno: "14 novembre", "sabato 14 novembre ore 21", "14/11"
+  const ref=new Date();ref.setHours(0,0,0,0);
+  const guessYear=(mm,dd)=>{let y=ref.getFullYear();const t=new Date(y,mm-1,dd);if(t<new Date(ref.getTime()-60*86400000))y++;return y;};
+  m=s.toLocaleLowerCase('it').match(/\b(\d{1,2})\s+(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\b/);
+  if(m){const mm=Number(months[m[2]]),dd=Number(m[1]),d=`${guessYear(mm,dd)}-${months[m[2]]}-${String(dd).padStart(2,'0')}`;return validISODate(d)?d:null;}
+  m=s.match(/\b(\d{1,2})[\/.](\d{1,2})\b(?![\/.]\d)/);
+  if(m){const d=`${guessYear(Number(m[2]),Number(m[1]))}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;return validISODate(d)?d:null;}
+  return null;
+}
+const STOPW=new Set(['il','lo','la','i','gli','le','un','una','di','del','dello','della','dei','degli','delle','a','al','allo','alla','ai','agli','alle','da','dal','dalla','in','nel','nella','nei','con','su','per','tra','fra','e','ed','the','of','and','evento','serata','ore']);
+function titleTokens(t){return String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>1&&!STOPW.has(w));}
+function sameEvent(a,b){
+  if(a.data_iso!==b.data_iso)return false;
+  const sa=new Set(titleTokens(a.titolo)),sb=new Set(titleTokens(b.titolo));
+  if(!sa.size||!sb.size)return String(a.titolo).toLowerCase()===String(b.titolo).toLowerCase();
+  let inter=0;sa.forEach(w=>{if(sb.has(w))inter++;});
+  const jac=inter/(sa.size+sb.size-inter),minSize=Math.min(sa.size,sb.size);
+  return jac>=0.6||(inter===minSize&&minSize>=2);
+}
+function normalizeEvents(items,grounding){
+  const allowed=new Set(grounding.map(x=>x.url));const out=[];
+  for(const item of items){
+    if(!item||!(item.titolo||item.title))continue;
+    // Accetta sia il nuovo schema data_iso sia il vecchio schema "data" usato dalla prima versione.
+    const date=parseEventDate(item.data_iso)||parseEventDate(item.data)||parseEventDate(item.date)||parseEventDate(item.titolo+' '+(item.descrizione||''));
+    if(!date)continue;
+    const title=String(item.titolo||item.title).trim(),place=String(item.luogo||item.place||'Luogo da verificare').trim();
+    const requested=safeURL(item.link)||safeURL(item.fonte_url)||safeURL(item.source_url);
+    const source=requested?grounding.find(x=>x.url===requested):null;
+    const titleSet=new Set(titleTokens(title)),sourceSet=new Set(titleTokens(source?.title||''));let titleOverlap=0;titleSet.forEach(w=>{if(sourceSet.has(w))titleOverlap++;});
+    const titleSimilarity=titleOverlap/(titleSet.size+sourceSet.size-titleOverlap||1),minTitleTokens=Math.min(titleSet.size,sourceSet.size);
+    const verifiedURL=source&&allowed.has(requested)&&titleOverlap>=2&&(titleSimilarity>=0.35||titleOverlap===minTitleTokens)?requested:null;
+    const rawTime=String(item.ora||item.time||'');
+    const timeMatch=rawTime.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+    const time=timeMatch?`${String(timeMatch[1]).padStart(2,'0')}:${timeMatch[2]}`:'';
+    const ev={titolo:title,data_iso:date,ora:time,luogo:place,categoria:normalizeCategory(item.categoria||item.category),descrizione:String(item.descrizione||item.description||''),link:requested,link_verificato:!!verifiedURL,fonte_nome:source?.title||'',fonte_url:requested,verifica:verifiedURL?'Fonte presente nei riferimenti Google Search':'Fonte specifica non associata con certezza',lat:null,lon:null};
+    const dup=out.find(x=>sameEvent(x,ev));
+    if(dup){if(ev.link&&ev.link_verificato&&!dup.link_verificato||!dup.link&&ev.link){dup.link=ev.link;dup.fonte_url=ev.fonte_url;dup.fonte_nome=ev.fonte_nome;dup.link_verificato=ev.link_verificato;}if(ev.descrizione.length>dup.descrizione.length)dup.descrizione=ev.descrizione;if(!dup.ora&&ev.ora)dup.ora=ev.ora;continue;}
+    out.push(ev);
+  }
+  return out.sort((a,b)=>(a.data_iso+a.ora).localeCompare(b.data_iso+b.ora));
+}
+async function fetchRetry(url,opts,tries=4){
+  for(let i=0;i<tries;i++){
+    const r=await fetch(url,opts);quotaInc();const d=await r.json();
+    if(r.ok)return{r,d};
+    const msg=d?.error?.message||'';
+    if(/requests per day|PerDay/i.test(msg))quotaSet(QUOTA_LIMIT);
+    const m=msg.match(/retry in ([\d.]+)s/i);
+    const retriable=r.status===503||r.status===429||/high demand|retry in/i.test(msg);
+    if(!retriable||i===tries-1||(m&&Number(m[1])>60))return{r,d};
+    const wait=m?Number(m[1])*1000+500:2000*2**i;
+    await new Promise(x=>setTimeout(x,wait));
+  }
+}
+async function fetchEvents(force=false){
+  const apiKey=$('apiKey').value.trim(),city=$('city').value.trim(),category=$('categoryFilter').value,radius=Number($('radius').value),max=Number($('maxResults').value);
+  if(!apiKey){alert('Inserisci prima una chiave API Gemini valida.');return;}if(!city){alert('Inserisci il nome di una città.');return;}
+  const mode=($('searchMode')||{}).value||'standard';
+  const ckey=[slug(city),mode,($('periodDays')||{}).value,radius,category,max,todayKey()].join('|');
+  if(!force){
+    const c=searchCacheGet(ckey);
+    if(c&&Array.isArray(c.events)&&c.events.length){
+      rawEventsData=c.events;currentCity=city;cityCoords=null;window.__diag=c.diag||'';
+      try{localStorage.setItem(CACHE_KEY,JSON.stringify({city:currentCity,events:rawEventsData,savedAt:c.savedAt}));}catch{}
+      showResults();renderSources(c.sources);
+      $('summary').textContent+=` · Risultati già cercati oggi alle ${new Date(c.savedAt).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}: nessuna richiesta usata. Premi “Aggiorna” per rifare la ricerca.`;
+      return;
+    }
+  }
+  const needed=mode==='fast'?1:3;
+  if(quotaGet()+needed>QUOTA_LIMIT&&!confirm(`Hai già fatto circa ${quotaGet()} richieste oggi su ${QUOTA_LIMIT}. Questa ricerca ne usa fino a ${needed}. Procedere comunque?`))return;
+  const btn=$('searchBtn');btn.disabled=true;$('refreshBtn').disabled=true;btn.textContent='Ricerca approfondita in corso…';
+  $('resultsContainer').innerHTML='<div class="status">Ricerca approfondita in corso: stiamo cercando gli eventi…<small>Modalità '+(mode==='fast'?'veloce: 1 richiesta Gemini.':'standard: 3 richieste Gemini in sequenza, può richiedere 1-2 minuti.')+'</small></div>';
+  $('filterBar').classList.add('hidden');$('summary').textContent='';
+  const {start,end}=dateRange();
+  const allGroups=[
+    {name:'Musica, spettacolo e arte',cats:'concerti, musica dal vivo, teatro, cabaret, cinema, mostre, musei, visite guidate, presentazioni di libri'},
+    {name:'Gastronomia, mercati e territorio',cats:'sagre, feste paesane, degustazioni, eventi enogastronomici, mercatini, fiere, mercati straordinari, feste tradizionali'},
+    {name:'Attività, sport e cultura',cats:'escursioni, trekking, passeggiate, ciclismo, camminate, sport, iniziative per famiglie, conferenze, incontri culturali, laboratori'}
+  ];
+  const groups=mode==='fast'?[{name:'Tutti i tipi di evento',cats:allGroups.map(g=>g.cats).join(', ')}]:allGroups;
+  const categoryText=category==='Tutti'?'':`Dai priorità alla categoria "${category}" ma includi anche altri eventi pertinenti del gruppo.`;
+  const endpoint='https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
+  const requests=groups.map(group=>async()=>{
+    const prompt=`Cerca sul web gli eventi reali in programma nella città di ${city} (e, se utile, nei comuni vicini entro circa ${radius} km) dal ${start} al ${end}. Tipologie da cercare: ${group.cats}. ${categoryText}
+Restituisci fino a un massimo di ${max} eventi.
+Fornisci la risposta ESCLUSIVAMENTE sotto forma di array JSON valido, senza testo introduttivo, spiegazioni o blocchi markdown. Ogni elemento deve contenere esattamente questi campi:
+- "titolo": titolo dell'evento
+- "data_iso": data in formato YYYY-MM-DD (se l'evento dura più giorni, il primo giorno che cade nel periodo)
+- "data": data e orario in testo (es. "15 novembre 2026 - ore 21:00")
+- "ora": orario HH:MM oppure stringa vuota
+- "luogo": sede e comune
+- "categoria": una tra Concerti, Teatro, Mostre, Sagre/Cibo, Mercatini, Escursioni, Passeggiate, Ciclismo, Sport, Cultura, Fiere, Conferenze, Altro
+- "descrizione": breve sintesi (max 2 frasi)
+- "link": URL diretto di approfondimento o biglietti SOLO SE VERIFICATO E SICURO, altrimenti null
+- "fonte_url": URL della pagina consultata se noto, altrimenti null`;
+    const {r:response,d:data}=await fetchRetry(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':apiKey},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],tools:[{googleSearch:{}}]})});
+    if(!response.ok)throw new Error(data?.error?.message||`Errore API (${response.status}) nella ricerca ${group.name}.`);
+    const candidate=data.candidates?.[0],rawText=(candidate?.content?.parts||[]).map(p=>p.text||'').join('\n');
+    if(!rawText)throw new Error(`Nessun testo restituito per ${group.name}.`);
+    const parsed=parseModelJSON(rawText);if(!Array.isArray(parsed))throw new Error(`Risposta non valida per ${group.name}.`);
+    return {events:parsed.slice(0,max),grounding:collectGrounding(candidate),group:group.name,rawCount:parsed.length};
+  });
+  try{
+    const settled=[];for(const run of requests){try{settled.push({status:'fulfilled',value:await run()});}catch(e){settled.push({status:'rejected',reason:e});}}
+    const successes=settled.filter(x=>x.status==='fulfilled').map(x=>x.value);
+    const failures=settled.filter(x=>x.status==='rejected').map(x=>x.reason?.message||'Errore di ricerca');
+    if(!successes.length)throw new Error(failures.join(' · ')||'Nessuna ricerca è andata a buon fine.');
+    const combined=[],allGrounding=[];
+    successes.forEach(result=>{combined.push(...result.events);allGrounding.push(...result.grounding);});
+    // Deduplica tra i tre gruppi, ordina cronologicamente e applica il limite scelto dall'utente.
+    const unique=normalizeEvents(combined,allGrounding).filter(e=>e.data_iso>=start&&e.data_iso<=end).slice(0,max);
+    rawEventsData=unique;currentCity=city;window.__diag=successes.map(r=>`${r.group}: ${r.rawCount} dal modello`).join(' · ')+` · scartati (doppioni, date fuori periodo o oltre il massimo selezionato): ${combined.length-unique.length}`;
+    // La distanza viene calcolata quando possibile, ma non si eliminano automaticamente eventi:
+    // una geocodifica imprecisa non deve far sparire appuntamenti validi.
+    cityCoords=null;try{cityCoords=await geocode(currentCity+', Italia');}catch(e){cityCoords=null;}
+    const srcs=uniqueSources(allGrounding);renderSources(srcs);
+    if(!failures.length)searchCacheSet(ckey,{events:rawEventsData,savedAt:new Date().toISOString(),diag:window.__diag,sources:srcs});
+    try{localStorage.setItem(CACHE_KEY,JSON.stringify({city:currentCity,events:rawEventsData,savedAt:new Date().toISOString()}));}catch(e){console.warn('Cache non salvata',e);}
+    saveArchive();showResults();
+    if(failures.length){
+      $('summary').textContent+=` · Attenzione: ${failures.length} delle ${groups.length} ricerche non sono riuscite (${failures.join(' | ').slice(0,300)}). [${window.__diag}]`;
+    }else{
+      $('summary').textContent+=` · Ricerca completata (modalità ${mode==='fast'?'veloce':'standard'}). [${window.__diag}]`;
+    }
+  }catch(err){
+    console.error(err);$('resultsContainer').innerHTML=`<div class="status error">Errore durante la ricerca: ${escapeHTML(err.message)}<small>Controlla la connessione, la chiave API e i limiti del servizio Gemini.</small></div>`;
+  }finally{btn.disabled=false;$('refreshBtn').disabled=false;btn.textContent='🔎 Cerca eventi';}
+}
+let lastGeoAt=0;
+async function geocode(query){
+  const stored=readStoredJSON(GEO_KEY,{}),cache=stored&&typeof stored==='object'&&!Array.isArray(stored)?stored:{},cacheKey=String(query).trim().toLocaleLowerCase('it');if(cache[cacheKey])return cache[cacheKey];
+  const wait=1100-(Date.now()-lastGeoAt);if(wait>0)await new Promise(r=>setTimeout(r,wait));lastGeoAt=Date.now();
+  const url='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(query);
+  const res=await fetch(url,{headers:{'Accept-Language':'it'}});if(!res.ok)throw new Error('Servizio di geocodifica momentaneamente non disponibile.');
+  const arr=await res.json();if(!arr.length)return null;
+  const point={lat:Number(arr[0].lat),lon:Number(arr[0].lon)};if(!Number.isFinite(point.lat)||!Number.isFinite(point.lon))return null;cache[cacheKey]=point;const keys=Object.keys(cache);if(keys.length>300)keys.slice(0,keys.length-300).forEach(k=>delete cache[k]);try{localStorage.setItem(GEO_KEY,JSON.stringify(cache));}catch(e){console.warn('Cache geocodifica non salvata',e);}return point;
+}
+function distanceKm(a,b){const R=6371,rad=x=>x*Math.PI/180,dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon),x=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
+function saveArchive(){
+  const stored=readStoredJSON(ARCHIVE_KEY,[]),archive=Array.isArray(stored)?stored:[];
+  archive.unshift({id:Date.now(),city:currentCity,date:new Date().toISOString(),count:rawEventsData.length,events:rawEventsData});
+  try{localStorage.setItem(ARCHIVE_KEY,JSON.stringify(archive.slice(0,20)));}catch(e){console.warn('Archivio non salvato',e);}
+}
+function showResults(){
+  $('filterBar').classList.remove('hidden');$('tabs').classList.remove('hidden');$('archivePanel').classList.add('hidden');
+  $('localSearch').value='';populateFilters();$('localCategory').value='Tutti';$('dateFilter').value='Tutti';applyFilters();setView('cards');
+}
+function populateFilters(){
+  const cats=['Tutti',...new Set(rawEventsData.map(e=>e.categoria))].sort((a,b)=>a==='Tutti'?-1:a.localeCompare(b,'it'));
+  $('localCategory').innerHTML=cats.map(c=>`<option value="${escapeHTML(c)}">${c==='Tutti'?'Tutte le categorie':escapeHTML(c)}</option>`).join('');
+  const days=[...new Set(rawEventsData.map(e=>e.data_iso))].sort();
+  $('dateFilter').innerHTML='<option value="Tutti">Tutti i giorni</option>'+days.map(d=>`<option value="${d}">${new Date(d+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}</option>`).join('');
+}
+function applyFilters(){
+  const q=$('localSearch').value.trim().toLocaleLowerCase('it'),cat=$('localCategory').value,day=$('dateFilter').value;
+  visibleEvents=rawEventsData.filter(e=>(cat==='Tutti'||e.categoria===cat)&&(day==='Tutti'||e.data_iso===day)&&(!q||[e.titolo,e.descrizione,e.luogo,e.categoria].join(' ').toLocaleLowerCase('it').includes(q)));
+  $('summary').textContent=`${visibleEvents.length} eventi visualizzati su ${rawEventsData.length} trovati per ${currentCity}.${visibleEvents.length<rawEventsData.length?' (alcuni sono nascosti dai filtri: usa "Tutte le categorie" / "Tutti i giorni" e svuota la parola chiave)':''}`;
+  renderCurrentView();
+}
+function setView(view){
+  currentView=view;
+  $('archivePanel').classList.toggle('hidden',view!=='archive');
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  renderCurrentView();
+}
+function linkMatchesEvent(e){if(e.link_verificato!==true||!safeURL(e.link))return false;const a=new Set(titleTokens(e.titolo)),b=new Set(titleTokens(e.fonte_nome||''));let n=0;a.forEach(w=>{if(b.has(w))n++;});const min=Math.min(a.size,b.size),score=n/(a.size+b.size-n||1);return n>=2&&(score>=0.35||n===min);}
+function eventCard(e){
+  const date=new Date(e.data_iso+'T12:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+  const mapsURL='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(e.luogo+', '+currentCity);
+  const searchURL='https://www.google.com/search?q='+encodeURIComponent(e.titolo+' '+e.luogo+' '+currentCity);
+  const verified=linkMatchesEvent(e);
+  const source=verified?`<a class="official" href="${escapeHTML(e.link)}" target="_blank" rel="noopener noreferrer">Fonte verificata</a>`:e.link?`<a href="${searchURL}" target="_blank" rel="noopener noreferrer">Cerca la fonte</a>`:'';
+  const isFav=getFavs().some(x=>eventKey(x)===eventKey(e));
+  const past=e.data_iso<todayKey()?' · concluso':'';
+  return `<article class="event-card"><div class="card-top"><span class="badge">${escapeHTML(e.categoria)}</span><button class="fav no-print" data-k="${escapeHTML(eventKey(e))}" onclick="toggleFav(this.dataset.k)" title="${isFav?'Rimuovi dai preferiti':'Salva nei preferiti'}">${isFav?'★':'☆'}</button></div><h3>${escapeHTML(e.titolo)}</h3><div class="meta"><span>📅 ${escapeHTML(date)}${e.ora?' · ore '+escapeHTML(e.ora):''}${past}</span><span>📍 ${escapeHTML(e.luogo)}</span>${e.distanza!=null?`<span>↔ ${e.distanza.toFixed(1)} km dal centro${e.fuoriRaggio?' · oltre il raggio selezionato':''}</span>`:''}</div><p class="description">${escapeHTML(e.descrizione)}</p><div class="verify ${verified?'ok':'partial'}">${verified?'✓ Fonte associata al titolo nei risultati Google':e.link?'ℹ Link non verificato: usa la ricerca web':'! Fonte specifica da verificare'}</div><div class="event-footer">${source}<a href="${mapsURL}" target="_blank" rel="noopener noreferrer">Apri mappa</a><a href="${searchURL}" target="_blank" rel="noopener noreferrer">Altri dettagli</a></div></article>`;
+}
+function renderCurrentView(){
+  const root=$('resultsContainer');
+  if(currentView==='archive'){renderArchive();return;}
+  if(currentView==='favs'){const f=getFavs();root.innerHTML=f.length?`<div class="events-grid">${f.map(eventCard).join('')}</div>`:'<div class="status">Nessun preferito. Tocca la stella ☆ su un evento per salvarlo qui.</div>';return;}
+  if(currentView==='map'){renderMap();return;}
+  if(!visibleEvents.length){root.innerHTML='<div class="status">Nessun evento corrisponde ai filtri selezionati.</div>';return;}
+  if(currentView==='calendar'){renderCalendar();return;}
+  root.innerHTML=`<div class="events-grid">${visibleEvents.map(eventCard).join('')}</div>`;
+}
+function renderCalendar(){
+  const groups={};visibleEvents.forEach(e=>(groups[e.data_iso]??=[]).push(e));
+  $('resultsContainer').innerHTML=Object.keys(groups).sort().map(day=>`<section class="calendar-day"><h3>${new Date(day+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h3>${groups[day].map(e=>{const url=linkMatchesEvent(e)?e.link:'https://www.google.com/search?q='+encodeURIComponent(e.titolo+' '+e.luogo+' '+currentCity);return `<div class="calendar-event"><div class="calendar-time">${escapeHTML(e.ora||'—')}</div><div><a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(e.titolo)}</a><div class="small muted">${escapeHTML(e.categoria)} · ${escapeHTML(e.luogo)}</div></div></div>`;}).join('')}</section>`).join('');
+}
+async function renderMap(){
+  const root=$('resultsContainer');
+  if(location.protocol==='file:'){root.innerHTML='<div class="status">La mappa interattiva richiede che l’app sia aperta da un sito HTTPS: OpenStreetMap blocca le richieste provenienti da file locali senza referrer. Pubblica l’app su GitHub Pages per usare la mappa. Intanto puoi aprire la mappa di ogni evento dalle schede qui sotto.</div>'+`<div class="events-grid">${visibleEvents.map(eventCard).join('')}</div>`;return;}
+  root.innerHTML='<div id="map"></div><p class="map-note">Il raggio è un’indicazione per la ricerca, non un filtro rigido: controlla la distanza mostrata per ciascun evento. La mappa mostra gli eventi per i quali è stato possibile trovare coordinate geografiche. Se un punto manca, usa “Apri mappa” nella scheda dell’evento.</p>';
+  if(!window.L){root.innerHTML='<div class="status error">Impossibile caricare Leaflet. Controlla la connessione.</div>';return;}
+  try{
+    if(!cityCoords){try{cityCoords=await geocode(currentCity+', Italia');}catch{}}
+    if(!map){map=L.map('map').setView(cityCoords?[cityCoords.lat,cityCoords.lon]:[44.5,11.3],10);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors',maxZoom:19}).addTo(map);}
+    else{map.invalidateSize();}
+    mapMarkers.forEach(m=>map.removeLayer(m));mapMarkers=[];
+    if(cityCoords)map.setView([cityCoords.lat,cityCoords.lon],10);
+    const bounds=[];
+    for(const e of visibleEvents){
+      let p=e.lat!=null?{lat:e.lat,lon:e.lon}:null;
+      if(!p){try{p=await geocode(e.luogo+', '+currentCity+', Italia');if(p){e.lat=p.lat;e.lon=p.lon;}}catch{}}
+      if(p&&cityCoords){e.distanza=distanceKm(cityCoords,p);e.fuoriRaggio=e.distanza>Number($('radius').value);}
+      if(p){const marker=L.marker([p.lat,p.lon]).addTo(map).bindPopup(`<strong>${escapeHTML(e.titolo)}</strong><br>${escapeHTML(e.luogo)}<br>${escapeHTML(e.data_iso)} ${escapeHTML(e.ora)}<br><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.luogo+', '+currentCity)}">Indicazioni</a>`);mapMarkers.push(marker);bounds.push([p.lat,p.lon]);}
+    }
+    if(bounds.length>1)map.fitBounds(bounds,{padding:[25,25]});else if(bounds.length===1)map.setView(bounds[0],13);
+    setTimeout(()=>map.invalidateSize(),100);
+  }catch(err){root.innerHTML=`<div class="status error">Impossibile visualizzare la mappa: ${escapeHTML(err.message||'errore inatteso')}<small>Puoi usare “Apri mappa” nelle schede degli eventi.</small></div>`;}
+}
+function renderArchive(){
+  const stored=readStoredJSON(ARCHIVE_KEY,[]),archive=Array.isArray(stored)?stored:[];$('resultsContainer').innerHTML='';
+  const panel=$('archivePanel');panel.classList.remove('hidden');
+  panel.innerHTML='<h3>Ricerche salvate</h3><p class="muted small">Le ultime 20 ricerche vengono conservate su questo dispositivo.</p>'+
+  (archive.length?archive.map(a=>`<div class="archive-item"><div><strong>${escapeHTML(a.city)}</strong><div class="small muted">${new Date(a.date).toLocaleString('it-IT')} · ${a.count} eventi</div></div><div class="actions"><button class="secondary" onclick="loadArchive(${a.id})">Apri</button><button class="secondary" onclick="deleteArchive(${a.id})">Elimina</button></div></div>`).join(''):'<p class="muted">Nessuna ricerca archiviata.</p>')+
+  '<div class="actions right" style="margin-top:12px"><button class="secondary" onclick="clearArchive()">Svuota archivio</button></div>';
+}
+function loadArchive(id){const stored=readStoredJSON(ARCHIVE_KEY,[]),a=(Array.isArray(stored)?stored:[]).find(x=>x.id===id);if(!a)return;rawEventsData=a.events;currentCity=a.city;$('city').value=a.city;try{localStorage.setItem(CACHE_KEY,JSON.stringify({city:currentCity,events:rawEventsData}));}catch{}$('archivePanel').classList.add('hidden');showResults();}
+function deleteArchive(id){const stored=readStoredJSON(ARCHIVE_KEY,[]),archive=Array.isArray(stored)?stored:[];try{localStorage.setItem(ARCHIVE_KEY,JSON.stringify(archive.filter(x=>x.id!==id)));}catch(e){console.warn('Archivio non aggiornato',e);}renderArchive();}
+function clearArchive(){if(confirm('Vuoi eliminare tutte le ricerche archiviate?')){try{localStorage.removeItem(ARCHIVE_KEY);}catch(e){console.warn('Archivio non eliminato',e);}renderArchive();}}
+function exportJSON(){const blob=new Blob([JSON.stringify(visibleEvents,null,2)],{type:'application/json'});downloadBlob(blob,`eventi_${slug(currentCity)}.json`);}
+function slug(s){return String(s||'ricerca').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'').toLowerCase()||'ricerca';}
+function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
+function exportICS(){
+  if(!visibleEvents.length)return alert('Non ci sono eventi da esportare.');
+  const esc=s=>String(s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
+  const stamp=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const compactDate=iso=>iso.replace(/-/g,'');
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Eventi in Citta//IT','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  visibleEvents.forEach((e,i)=>{const timed=/^\d{2}:\d{2}$/.test(e.ora),base=['BEGIN:VEVENT',`UID:${Date.now()}-${i}@eventiincitta`,`DTSTAMP:${stamp(new Date())}`];if(timed){const start=e.data_iso.replace(/-/g,'')+'T'+e.ora.replace(':','')+'00',[hh,mm]=e.ora.split(':').map(Number),total=hh*60+mm+120,offset=Math.floor(total/1440),endDate=new Date(e.data_iso+'T12:00:00');endDate.setDate(endDate.getDate()+offset);const end=dateISO(endDate).replace(/-/g,'')+'T'+String(Math.floor((total%1440)/60)).padStart(2,'0')+String(total%60).padStart(2,'0')+'00';base.push(`DTSTART:${start}`,`DTEND:${end}`);}else{const next=new Date(e.data_iso+'T00:00:00');next.setDate(next.getDate()+1);base.push(`DTSTART;VALUE=DATE:${compactDate(e.data_iso)}`,`DTEND;VALUE=DATE:${dateISO(next).replace(/-/g,'')}`);}lines.push(...base,`SUMMARY:${esc(e.titolo)}`,`LOCATION:${esc(e.luogo)}`,`DESCRIPTION:${esc(e.descrizione+(e.link?'\\n'+e.link:''))}`,'END:VEVENT');});
+  lines.push('END:VCALENDAR');downloadBlob(new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'}),`eventi_${slug(currentCity)}.ics`);
+}
+
+let deferredInstallPrompt=null,pwaRegistration=null,reloadAfterPwaUpdate=false;
+function installInstructions(){return /iPhone|iPad|iPod/i.test(navigator.userAgent)?'Per installare su iPhone o iPad: apri il menu Condividi di Safari e scegli “Aggiungi alla schermata Home”.': 'Per installare: usa il menu del browser e scegli “Installa app” o “Installa Eventi in Città”. Verifica di aver aperto la versione HTTPS su GitHub Pages.';}
+function showUpdateNotice(){const n=$('updateNotice');if(n)n.classList.remove('hidden');}
+function initPWA(){
+  const installBtn=$('installBtn');
+  const standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  if(standalone)installBtn.classList.add('hidden');
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;installBtn.textContent='Installa app';});
+  window.addEventListener('appinstalled',()=>{installBtn.classList.add('hidden');deferredInstallPrompt=null;});
+  installBtn.addEventListener('click',async()=>{if(!deferredInstallPrompt){alert(installInstructions());return;}deferredInstallPrompt.prompt();const result=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(result.outcome==='accepted')installBtn.classList.add('hidden');});
+  $('updateLaterBtn').addEventListener('click',()=>$('updateNotice').classList.add('hidden'));
+  $('updateNowBtn').addEventListener('click',()=>{if(pwaRegistration?.waiting){reloadAfterPwaUpdate=true;pwaRegistration.waiting.postMessage({type:'SKIP_WAITING'});}});
+  if(!('serviceWorker' in navigator)||!window.isSecureContext)return;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloadAfterPwaUpdate)window.location.reload();});
+  navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).then(reg=>{
+    pwaRegistration=reg;
+    if(reg.waiting&&navigator.serviceWorker.controller)showUpdateNotice();
+    reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)showUpdateNotice();});});
+    const check=()=>{if(navigator.onLine)reg.update().catch(()=>{});};
+    window.addEventListener('focus',check);window.addEventListener('online',check);setInterval(check,60*60*1000);
+  }).catch(err=>console.warn('Service worker non disponibile',err));
+}
+document.addEventListener('DOMContentLoaded',initPWA);
+</script>
+</body>
+</html>
