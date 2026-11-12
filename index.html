@@ -353,9 +353,27 @@ async function renderMap(){
 function renderArchive(){
   const stored=readStoredJSON(ARCHIVE_KEY,[]),archive=Array.isArray(stored)?stored:[];$('resultsContainer').innerHTML='';
   const panel=$('archivePanel');panel.classList.remove('hidden');
-  panel.innerHTML='<h3>Ricerche salvate</h3><p class="muted small">Le ultime 20 ricerche vengono conservate su questo dispositivo.</p>'+
+  panel.innerHTML='<h3>Ricerche salvate</h3><p class="muted small">Le ultime 20 ricerche vengono conservate su questo dispositivo.</p><div class="actions" style="margin:12px 0"><button class="secondary" onclick="triggerArchiveImport()">Importa file JSON</button><input id="archiveJsonInput" type="file" accept=".json,application/json" class="hidden" onchange="importArchiveJSON(event)"></div>'+
   (archive.length?archive.map(a=>`<div class="archive-item"><div><strong>${escapeHTML(a.city)}</strong><div class="small muted">${new Date(a.date).toLocaleString('it-IT')} · ${a.count} eventi</div></div><div class="actions"><button class="secondary" onclick="loadArchive(${a.id})">Apri</button><button class="secondary" onclick="deleteArchive(${a.id})">Elimina</button></div></div>`).join(''):'<p class="muted">Nessuna ricerca archiviata.</p>')+
   '<div class="actions right" style="margin-top:12px"><button class="secondary" onclick="clearArchive()">Svuota archivio</button></div>';
+}
+function triggerArchiveImport(){const input=$('archiveJsonInput');if(input)input.click();}
+async function importArchiveJSON(event){
+  const input=event.target,file=input.files?.[0];if(!file)return;
+  try{
+    const parsed=JSON.parse(await file.text());let sessions=[];
+    if(Array.isArray(parsed)&&parsed.length&&parsed.every(x=>x&&Array.isArray(x.events)))sessions=parsed;
+    else if(Array.isArray(parsed))sessions=[{city:$('city').value.trim()||'Importazione JSON',events:parsed}];
+    else if(parsed&&Array.isArray(parsed.events))sessions=[parsed];
+    else throw new Error('Il file deve contenere un elenco di eventi o un oggetto con il campo "events".');
+    const now=Date.now(),imported=[];let eventCount=0;
+    sessions.forEach((session,i)=>{const events=normalizeEvents(session.events,[]);if(!events.length)return;const candidateDate=new Date(session.date||session.savedAt||Date.now()),date=Number.isNaN(candidateDate.getTime())?new Date().toISOString():candidateDate.toISOString();imported.push({id:now+i,city:String(session.city||$('city').value.trim()||'Importazione JSON'),date,count:events.length,events});eventCount+=events.length;});
+    if(!imported.length)throw new Error('Non ho trovato eventi con titolo e data validi nel file.');
+    const stored=readStoredJSON(ARCHIVE_KEY,[]),archive=Array.isArray(stored)?stored:[];
+    try{localStorage.setItem(ARCHIVE_KEY,JSON.stringify([...imported,...archive].slice(0,20)));}catch(e){throw new Error('Spazio browser insufficiente per salvare i dati importati.');}
+    renderArchive();alert(`Importazione completata: ${eventCount} eventi in ${imported.length} ricerche.`);
+  }catch(err){alert('Importazione JSON non riuscita: '+err.message);}
+  finally{input.value='';}
 }
 function loadArchive(id){const stored=readStoredJSON(ARCHIVE_KEY,[]),a=(Array.isArray(stored)?stored:[]).find(x=>x.id===id);if(!a)return;rawEventsData=a.events;currentCity=a.city;$('city').value=a.city;try{localStorage.setItem(CACHE_KEY,JSON.stringify({city:currentCity,events:rawEventsData}));}catch{}$('archivePanel').classList.add('hidden');showResults();}
 function deleteArchive(id){const stored=readStoredJSON(ARCHIVE_KEY,[]),archive=Array.isArray(stored)?stored:[];try{localStorage.setItem(ARCHIVE_KEY,JSON.stringify(archive.filter(x=>x.id!==id)));}catch(e){console.warn('Archivio non aggiornato',e);}renderArchive();}
