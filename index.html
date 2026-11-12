@@ -14,7 +14,7 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px}
 .container{max-width:1180px;margin:auto}header{text-align:center;margin:8px 0 26px}.header-tools{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:14px}.update-banner{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;padding:12px 14px;border-radius:10px;margin:10px 0 16px}.update-banner p{margin:0}.update-banner .actions{margin-left:auto}.author{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}h1{font-size:clamp(1.8rem,4vw,2.5rem);margin:4px 0}.subtitle{color:var(--muted);margin:0}
 .panel,.event-card,.toolbar,.archive-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 3px 12px #0f172a08}
-.panel{padding:20px;margin-bottom:18px}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:15px}.field{display:flex;flex-direction:column;gap:6px}label{font-size:.86rem;font-weight:700}
+.panel{padding:20px;margin-bottom:18px}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:15px}@media(min-width:900px){.form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}.field{display:flex;flex-direction:column;gap:6px}label{font-size:.86rem;font-weight:700}
 input,select{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:9px;background:#fff;color:var(--text);font:inherit;min-width:0}input:focus,select:focus{outline:2px solid #93c5fd;border-color:var(--primary)}
 .actions,.toolbar-actions,.tabs{display:flex;gap:9px;flex-wrap:wrap;align-items:center}button,.button-link{border:0;border-radius:9px;background:var(--primary);color:white;padding:10px 15px;font:600 .92rem system-ui;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}button:hover,.button-link:hover{background:var(--primary-dark)}button.secondary{background:#e8eef6;color:#243247}button.secondary:hover{background:#d8e2ee}button:disabled{opacity:.55;cursor:not-allowed}.right{justify-content:flex-end}
 .toolbar{padding:12px 14px;margin:16px 0;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.toolbar .field{min-width:170px;flex:1}.toolbar-actions button{font-size:.82rem;padding:8px 11px}
@@ -26,7 +26,7 @@ input,select{width:100%;padding:11px 12px;border:1px solid var(--border);border-
 .calendar-day{background:#fff;border:1px solid var(--border);border-radius:12px;margin:10px 0;overflow:hidden}.calendar-day h3{margin:0;padding:10px 14px;background:#eef4fb;font-size:.95rem}.calendar-event{padding:11px 14px;border-top:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}.calendar-time{min-width:65px;color:var(--primary);font-weight:800}.calendar-event a{color:var(--text);font-weight:700;text-decoration:none}
 .archive-panel{padding:15px;margin-top:18px}.archive-item{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border)}.archive-item:first-of-type{border-top:0}
 .card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.fav{background:transparent!important;color:#d97706!important;font-size:1.3rem;padding:0 4px;line-height:1}.fav:hover{transform:scale(1.15)}#sourcesBox{margin:6px 0 10px}#sourcesBox summary{cursor:pointer}#sourcesBox a{color:var(--primary)}.hidden{display:none!important}.muted{color:var(--muted)}.small{font-size:.82rem}.notice{background:#fffbeb;border:1px solid #fde68a;color:#854d0e;padding:10px 12px;border-radius:9px;font-size:.84rem;margin-top:12px}.notice a{color:#1d4ed8;font-weight:700}dialog{width:min(460px,calc(100% - 28px));border:1px solid var(--border);border-radius:14px;padding:22px;color:var(--text);box-shadow:0 18px 50px #0f172a40}dialog::backdrop{background:#0f172a80}dialog h2{margin:0 0 8px;font-size:1.25rem}dialog a{color:var(--primary)}
-@media(max-width:600px){body{padding:12px}.panel{padding:15px}.toolbar{align-items:stretch}.toolbar-actions{width:100%}.toolbar-actions button{flex:1}.calendar-event{gap:7px}.calendar-time{min-width:52px}}
+@media(max-width:600px){body{padding:12px}.panel{padding:15px}.form-grid{grid-template-columns:1fr}.toolbar{align-items:stretch}.toolbar-actions{width:100%}.toolbar-actions button{flex:1}.calendar-event{gap:7px}.calendar-time{min-width:52px}}
 @media print{.fav,.quota-line,#sourcesBox{display:none!important}body{background:white;padding:0}.no-print,header .author,.panel,.toolbar,.tabs,.archive-panel,#map{display:none!important}.container{max-width:none}.event-card{break-inside:avoid;box-shadow:none}.events-grid{display:block}.event-card{margin-bottom:10px}.event-footer a{color:#000;background:none;text-decoration:underline}}
 </style>
 </head>
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('apiKey').addEventListener('input',e=>{try{localStorage.setItem('gemini_api_key',e.target.value.trim());}catch{}});
   $('city').addEventListener('input',e=>{try{localStorage.setItem('gemini_last_city',e.target.value.trim());}catch{}});
   $('radius').addEventListener('change',e=>{try{localStorage.setItem('eventi_radius',e.target.value);}catch{}});
-  const cache=readStoredJSON(CACHE_KEY,null);if(Array.isArray(cache?.events)&&cache.events.length){rawEventsData=cache.events;currentCity=cache.city||$('city').value;showResults();}
+  const cache=readStoredJSON(CACHE_KEY,null);if(Array.isArray(cache?.events)&&cache.events.length){rawEventsData=cache.events;currentCity=cache.city||$('city').value;if(importLabel(currentCity))currentCity='Eventi importati';showResults();}
 });
 function dateISO(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function dateRange(){const a=new Date();a.setHours(0,0,0,0);const b=new Date(a);b.setDate(b.getDate()+(Number(($('periodDays')||{}).value)||14)-1);return {start:dateISO(a),end:dateISO(b)};}
@@ -283,6 +283,7 @@ function saveArchive(){
   try{localStorage.setItem(ARCHIVE_KEY,JSON.stringify(archive.slice(0,20)));}catch(e){console.warn('Archivio non salvato',e);}
 }
 function showResults(){
+  if(importLabel(currentCity))currentCity='Eventi importati';
   $('filterBar').classList.remove('hidden');$('tabs').classList.remove('hidden');$('archivePanel').classList.add('hidden');
   $('localSearch').value='';populateFilters();$('localCategory').value='Tutti';$('dateFilter').value='Tutti';applyFilters();setView('cards');
 }
@@ -306,6 +307,7 @@ function setView(view){
 }
 function linkMatchesEvent(e){if(e.link_verificato!==true||!safeURL(e.link))return false;const a=new Set(titleTokens(e.titolo)),b=new Set(titleTokens(e.fonte_nome||''));let n=0;a.forEach(w=>{if(b.has(w))n++;});const min=Math.min(a.size,b.size),score=n/(a.size+b.size-n||1);return n>=2&&(score>=0.35||n===min);}
 function importLabel(s){return /^(importazione json|eventi importati)$/i.test(String(s||'').trim());}
+function archiveCityLabel(a){return importLabel(a.city)?'Eventi importati':String(a.city||'');}
 function eventSearchURL(e){const title=String(e.titolo||''),place=String(e.luogo||''),city=String(currentCity||'').trim(),key=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('it').replace(/[^a-z0-9]+/g,' ').trim(),cityKey=key(city);const parts=[title,place];if(cityKey&&!importLabel(city)&&!key(place).includes(cityKey)&&!key(title).includes(cityKey))parts.push(city);return 'https://www.google.com/search?q='+encodeURIComponent(parts.filter(Boolean).join(' '));}
 function eventCard(e){
   const date=new Date(e.data_iso+'T12:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
@@ -332,24 +334,36 @@ function renderCalendar(){
 }
 async function renderMap(){
   const root=$('resultsContainer');
-  if(location.protocol==='file:'){root.innerHTML='<div class="status">La mappa interattiva richiede che l’app sia aperta da un sito HTTPS: OpenStreetMap blocca le richieste provenienti da file locali senza referrer. Pubblica l’app su GitHub Pages per usare la mappa. Intanto puoi aprire la mappa di ogni evento dalle schede qui sotto.</div>'+`<div class="events-grid">${visibleEvents.map(eventCard).join('')}</div>`;return;}
-  root.innerHTML='<div id="map"></div><p class="map-note">Il raggio è un’indicazione per la ricerca, non un filtro rigido: controlla la distanza mostrata per ciascun evento. La mappa mostra gli eventi per i quali è stato possibile trovare coordinate geografiche. Se un punto manca, usa “Apri mappa” nella scheda dell’evento.</p>';
+  if(map){map.remove();map=null;mapMarkers=[];}
+  if(location.protocol==='file:'){root.innerHTML='<div class="status">La mappa interattiva richiede che l’app sia aperta da un sito HTTPS. Intanto puoi aprire la mappa di ogni evento dalle schede qui sotto.</div>'+`<div class="events-grid">${visibleEvents.map(eventCard).join('')}</div>`;return;}
+  if(!visibleEvents.length){root.innerHTML='<div class="status">Nessun evento da visualizzare sulla mappa.</div>';return;}
   if(!window.L){root.innerHTML='<div class="status error">Impossibile caricare Leaflet. Controlla la connessione.</div>';return;}
+  root.innerHTML='<div class="status">Sto cercando le posizioni degli eventi…</div>';
   try{
-    if(!cityCoords){try{cityCoords=await geocode(currentCity+', Italia');}catch{}}
-    if(!map){map=L.map('map').setView(cityCoords?[cityCoords.lat,cityCoords.lon]:[44.5,11.3],10);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors',maxZoom:19}).addTo(map);}
-    else{map.invalidateSize();}
-    mapMarkers.forEach(m=>map.removeLayer(m));mapMarkers=[];
-    if(cityCoords)map.setView([cityCoords.lat,cityCoords.lon],10);
-    const bounds=[];
+    const mapCity=importLabel(currentCity)?'':String(currentCity||'').trim();
+    if(!mapCity)cityCoords=null;else if(!cityCoords){try{cityCoords=await geocode(mapCity+', Italia');}catch{cityCoords=null;}}
+    const located=[];
     for(const e of visibleEvents){
-      let p=e.lat!=null?{lat:e.lat,lon:e.lon}:null;
-      if(!p){try{p=await geocode(e.luogo+', '+currentCity+', Italia');if(p){e.lat=p.lat;e.lon=p.lon;}}catch{}}
-      if(p&&cityCoords){e.distanza=distanceKm(cityCoords,p);e.fuoriRaggio=e.distanza>Number($('radius').value);}
-      if(p){const marker=L.marker([p.lat,p.lon]).addTo(map).bindPopup(`<strong>${escapeHTML(e.titolo)}</strong><br>${escapeHTML(e.luogo)}<br>${escapeHTML(e.data_iso)} ${escapeHTML(e.ora)}<br><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.luogo+', '+currentCity)}">Indicazioni</a>`);mapMarkers.push(marker);bounds.push([p.lat,p.lon]);}
+      let p=e.lat!=null&&e.lon!=null?{lat:e.lat,lon:e.lon}:null;
+      const place=String(e.luogo||'').trim();
+      if(!p&&place&&place!=='Luogo da verificare'){
+        const placeKey=place.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('it');
+        const cityKey=mapCity.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('it');
+        const query=[place,mapCity&& !placeKey.includes(cityKey)?mapCity:'','Italia'].filter(Boolean).join(', ');
+        try{p=await geocode(query);if(p){e.lat=p.lat;e.lon=p.lon;}}catch{}
+      }
+      if(p){if(cityCoords){e.distanza=distanceKm(cityCoords,p);e.fuoriRaggio=e.distanza>Number($('radius').value);}located.push({event:e,point:p});}
+    }
+    if(!located.length){root.innerHTML='<div class="status">Non sono riuscito a localizzare gli eventi importati, quindi evito di mostrare una cartina senza punti. Usa “Apri mappa” o “Altri dettagli” nelle schede.</div>'+`<div class="events-grid">${visibleEvents.map(eventCard).join('')}</div>`;return;}
+    root.innerHTML='<div id="map"></div><p class="map-note">La mappa mostra solo gli eventi con coordinate trovate. Il raggio è indicativo e non esclude eventi.</p>';
+    const first=located[0].point;map=L.map('map').setView(cityCoords?[cityCoords.lat,cityCoords.lon]:[first.lat,first.lon],cityCoords?10:13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors',maxZoom:19}).addTo(map);
+    const bounds=[];
+    for(const {event:e,point:p} of located){
+      const marker=L.marker([p.lat,p.lon]).addTo(map).bindPopup(`<strong>${escapeHTML(e.titolo)}</strong><br>${escapeHTML(e.luogo)}<br>${escapeHTML(e.data_iso)} ${escapeHTML(e.ora)}<br><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.luogo+', '+(mapCity&&!importLabel(mapCity)?mapCity:''))}">Indicazioni</a>`);mapMarkers.push(marker);bounds.push([p.lat,p.lon]);
     }
     if(bounds.length>1)map.fitBounds(bounds,{padding:[25,25]});else if(bounds.length===1)map.setView(bounds[0],13);
-    setTimeout(()=>map.invalidateSize(),100);
+    setTimeout(()=>map?.invalidateSize(),100);
   }catch(err){root.innerHTML=`<div class="status error">Impossibile visualizzare la mappa: ${escapeHTML(err.message||'errore inatteso')}<small>Puoi usare “Apri mappa” nelle schede degli eventi.</small></div>`;}
 }
 function renderArchive(){
@@ -377,7 +391,7 @@ async function importArchiveJSON(event){
   }catch(err){alert('Importazione JSON non riuscita: '+err.message);}
   finally{input.value='';}
 }
-function loadArchive(id){const stored=readStoredJSON(ARCHIVE_KEY,[]),a=(Array.isArray(stored)?stored:[]).find(x=>x.id===id);if(!a)return;rawEventsData=a.events;currentCity=a.city;$('city').value=a.city;try{localStorage.setItem(CACHE_KEY,JSON.stringify({city:currentCity,events:rawEventsData}));}catch{}$('archivePanel').classList.add('hidden');showResults();}
+function loadArchive(id){const stored=readStoredJSON(ARCHIVE_KEY,[]),a=(Array.isArray(stored)?stored:[]).find(x=>x.id===id);if(!a)return;rawEventsData=a.events;currentCity=importLabel(a.city)?'Eventi importati':a.city;cityCoords=null;$('city').value=a.city;try{localStorage.setItem(CACHE_KEY,JSON.stringify({city:currentCity,events:rawEventsData}));}catch{}$('archivePanel').classList.add('hidden');showResults();}
 function deleteArchive(id){const stored=readStoredJSON(ARCHIVE_KEY,[]),archive=Array.isArray(stored)?stored:[];try{localStorage.setItem(ARCHIVE_KEY,JSON.stringify(archive.filter(x=>x.id!==id)));}catch(e){console.warn('Archivio non aggiornato',e);}renderArchive();}
 function clearArchive(){if(confirm('Vuoi eliminare tutte le ricerche archiviate?')){try{localStorage.removeItem(ARCHIVE_KEY);}catch(e){console.warn('Archivio non eliminato',e);}renderArchive();}}
 function exportJSON(){const blob=new Blob([JSON.stringify(visibleEvents,null,2)],{type:'application/json'});downloadBlob(blob,`eventi_${slug(currentCity)}.json`);}
