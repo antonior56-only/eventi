@@ -32,7 +32,7 @@ input,select{width:100%;padding:11px 12px;border:1px solid var(--border);border-
 </head>
 <body>
 <div class="container">
-<header><div class="author">Realizzato da Antonio R.</div><h1>Eventi in Città</h1><p class="subtitle">Scopri eventi, iniziative e appuntamenti nel periodo scelto</p><div class="header-tools no-print"><button id="apiKeyOpenBtn" type="button" class="secondary" onclick="openApiDialog(event)">API Key</button><a class="button-link secondary" href="./manuale.html">Manuale</a><button id="installBtn" class="secondary hidden" type="button">Installa app</button></div></header>
+<header><h1>Eventi in Città</h1><p class="subtitle">Scopri eventi, iniziative e appuntamenti nel periodo scelto</p><div class="header-tools no-print"><button id="apiKeyOpenBtn" type="button" class="secondary" onclick="openApiDialog(event)">API Key</button><a class="button-link secondary" href="./manuale.html">Manuale</a><button id="installBtn" class="secondary hidden" type="button">Installa app</button></div></header>
 <div id="updateNotice" class="update-banner hidden no-print" role="status" aria-live="polite"><p>È disponibile una nuova versione dell’app.</p><div class="actions"><button id="updateNowBtn" type="button">Aggiorna ora</button><button id="updateLaterBtn" class="secondary" type="button">Più tardi</button></div></div>
 
 <section class="panel no-print">
@@ -44,7 +44,7 @@ input,select{width:100%;padding:11px 12px;border:1px solid var(--border);border-
     <div class="field"><label for="periodDays">Periodo</label><select id="periodDays"><option value="7">Prossimi 7 giorni</option><option value="14" selected>Prossimi 14 giorni</option><option value="30">Prossimi 30 giorni</option></select></div>
     <div class="field"><label for="maxResults">Numero massimo complessivo di eventi</label><select id="maxResults"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option><option>40</option></select></div>
   </div>
-  <div class="actions right"><button id="refreshBtn" class="secondary" onclick="fetchEvents(true)" title="Rifa la ricerca ignorando i risultati già salvati oggi">↻ Aggiorna</button><button id="searchBtn" onclick="fetchEvents(false)">🔎 Cerca eventi</button></div>
+  <div class="actions right"><button id="refreshBtn" class="secondary" onclick="fetchEvents(true)" title="Avvia una nuova ricerca ignorando i risultati già salvati oggi">↻ Nuova ricerca</button><button id="searchBtn" onclick="fetchEvents(false)">🔎 Cerca eventi</button></div>
   <p id="quotaInfo" class="muted small quota-line" style="margin:8px 0 0;text-align:right"></p>
   <dialog id="apiDialog" aria-labelledby="apiDialogTitle"><h2 id="apiDialogTitle">Chiave API Gemini</h2><p class="muted small">La chiave viene salvata in questo browser e usata per le richieste di questa app.</p><div class="field"><label for="apiKey">La tua chiave API</label><input type="password" id="apiKey" autocomplete="off" placeholder="Incolla qui la tua chiave API"></div><p class="small"><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Ottieni una chiave API in Google AI Studio ↗</a></p><p id="apiKeyStatus" class="small muted" role="status" aria-live="polite"></p><div class="actions right"><button type="button" class="secondary" onclick="closeApiDialog()">Chiudi</button><button type="button" onclick="saveApiKey()">Salva API key</button></div></dialog>
 </section>
@@ -205,7 +205,7 @@ async function fetchEvents(force=false){
       rawEventsData=c.events;currentCity=city;cityCoords=null;window.__diag=c.diag||'';
       try{localStorage.setItem(CACHE_KEY,JSON.stringify({city:currentCity,events:rawEventsData,savedAt:c.savedAt}));}catch{}
       showResults();renderSources(c.sources);
-      $('summary').textContent+=` · Risultati già cercati oggi alle ${new Date(c.savedAt).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}: nessuna richiesta usata. Premi “Aggiorna” per rifare la ricerca.`;
+      $('summary').textContent+=` · Risultati già cercati oggi alle ${new Date(c.savedAt).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}: nessuna richiesta usata. Premi “Nuova ricerca” per rifare la ricerca.`;
       return;
     }
   }
