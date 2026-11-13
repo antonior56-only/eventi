@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v9";
+const CACHE_VERSION = "v20";
 const CACHE_PREFIX = "eventi-citta-shell-";
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 const MAIN_PAGE = "./index.html";
@@ -40,3 +40,4 @@ self.addEventListener("fetch", event => {
     return response;
   })());
 });
+

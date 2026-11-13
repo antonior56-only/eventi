@@ -7,6 +7,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="9b546cab-0f19-4f64-a291-251e012aa591"></script>
 <title>Eventi in Città</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <style>
@@ -27,7 +28,7 @@ input,select{width:100%;padding:11px 12px;border:1px solid var(--border);border-
 .archive-panel{padding:15px;margin-top:18px}.archive-item{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border)}.archive-item:first-of-type{border-top:0}
 .card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.fav{background:transparent!important;color:#d97706!important;font-size:1.3rem;padding:0 4px;line-height:1}.fav:hover{transform:scale(1.15)}#sourcesBox{margin:6px 0 10px}#sourcesBox summary{cursor:pointer}#sourcesBox a{color:var(--primary)}.hidden{display:none!important}.muted{color:var(--muted)}.small{font-size:.82rem}.notice{background:#fffbeb;border:1px solid #fde68a;color:#854d0e;padding:10px 12px;border-radius:9px;font-size:.84rem;margin-top:12px}.notice a{color:#1d4ed8;font-weight:700}dialog{width:min(460px,calc(100% - 28px));border:1px solid var(--border);border-radius:14px;padding:22px;color:var(--text);box-shadow:0 18px 50px #0f172a40}dialog::backdrop{background:#0f172a80}dialog h2{margin:0 0 8px;font-size:1.25rem}dialog a{color:var(--primary)}
 @media(min-width:601px) and (max-width:899px){.form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){body{padding:10px}.panel{padding:14px}.form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{align-items:stretch}.toolbar .field{min-width:0}.toolbar-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar-actions button{min-width:0;flex:auto}.tabs{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain}.tab{flex:0 0 auto;white-space:nowrap;padding:9px 11px}.calendar-event{gap:7px}.calendar-time{min-width:52px}.archive-item{align-items:flex-start;flex-direction:column}.archive-item .actions{width:100%}.archive-item .actions button{flex:1}#map{height:55vh;min-height:320px;max-height:560px}}@media(max-width:420px){.form-grid{grid-template-columns:1fr}.panel{padding:12px}.events-grid{grid-template-columns:1fr}.event-footer a{flex:1 1 40%}}
-@media print{.fav,.quota-line,#sourcesBox{display:none!important}body{background:white;padding:0}.no-print,header .author,.panel,.toolbar,.tabs,.archive-panel,#map{display:none!important}.container{max-width:none}.event-card{break-inside:avoid;box-shadow:none}.events-grid{display:block}.event-card{margin-bottom:10px}.event-footer a{color:#000;background:none;text-decoration:underline}}
+@media print{.fav,#sourcesBox{display:none!important}body{background:white;padding:0}.no-print,header .author,.panel,.toolbar,.tabs,.archive-panel,#map{display:none!important}.container{max-width:none}.event-card{break-inside:avoid;box-shadow:none}.events-grid{display:block}.event-card{margin-bottom:10px}.event-footer a{color:#000;background:none;text-decoration:underline}}
 </style>
 </head>
 <body>
@@ -40,13 +41,12 @@ input,select{width:100%;padding:11px 12px;border:1px solid var(--border);border-
     <div class="field"><label for="city">Città di riferimento</label><input id="city" type="text" placeholder="Es. Nonantola, Bologna, Modena"></div>
     <div class="field"><label for="radius">Raggio indicativo di ricerca</label><select id="radius"><option value="10">10 km</option><option value="20">20 km</option><option value="30" selected>30 km</option><option value="50">50 km</option></select></div>
     <div class="field"><label for="categoryFilter">Categoria da cercare</label><select id="categoryFilter"><option value="Tutti">Tutte le categorie</option><option>Concerti</option><option>Teatro</option><option>Mostre</option><option>Sagre/Cibo</option><option>Mercatini</option><option>Escursioni</option><option>Passeggiate</option><option>Ciclismo</option><option>Sport</option><option>Cultura</option><option>Fiere</option><option>Conferenze</option><option>Altro</option></select></div>
-    <div class="field"><label for="searchMode">Modalità di ricerca</label><select id="searchMode"><option value="standard" selected>Standard (3 richieste, più completa)</option><option value="fast">Veloce (1 richiesta, meno quota)</option></select></div>
+    <div class="field"><label for="searchMode">Modalità di ricerca</label><select id="searchMode"><option value="standard" selected>Standard (più completa)</option><option value="fast">Veloce (più rapida)</option></select></div>
     <div class="field"><label for="periodDays">Periodo</label><select id="periodDays"><option value="7">Prossimi 7 giorni</option><option value="14" selected>Prossimi 14 giorni</option><option value="30">Prossimi 30 giorni</option></select></div>
     <div class="field"><label for="maxResults">Numero massimo complessivo di eventi</label><select id="maxResults"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option><option>40</option></select></div>
   </div>
   <div class="actions right"><button id="refreshBtn" class="secondary" onclick="fetchEvents(true)" title="Avvia una nuova ricerca ignorando i risultati già salvati oggi">↻ Nuova ricerca</button><button id="searchBtn" onclick="fetchEvents(false)">🔎 Cerca eventi</button></div>
-  <p id="quotaInfo" class="muted small quota-line" style="margin:8px 0 0;text-align:right"></p>
-  <dialog id="apiDialog" aria-labelledby="apiDialogTitle"><h2 id="apiDialogTitle">Chiave API Gemini</h2><p class="muted small">La chiave viene salvata in questo browser e usata per le richieste di questa app.</p><div class="field"><label for="apiKey">La tua chiave API</label><input type="password" id="apiKey" autocomplete="off" placeholder="Incolla qui la tua chiave API"></div><p class="small"><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Ottieni una chiave API in Google AI Studio ↗</a></p><p id="apiKeyStatus" class="small muted" role="status" aria-live="polite"></p><div class="actions right"><button type="button" class="secondary" onclick="closeApiDialog()">Chiudi</button><button type="button" onclick="saveApiKey()">Salva API key</button></div></dialog>
+  <dialog id="apiDialog" aria-labelledby="apiDialogTitle"><h2 id="apiDialogTitle">Chiave API Gemini</h2><p class="muted small">La chiave viene salvata in questo browser e usata per le richieste di questa app.</p><div class="field"><label for="apiKey">La tua chiave API</label><input type="password" id="apiKey" autocomplete="off" placeholder="Incolla qui la tua chiave API"></div><p class="small">Se Google segnala che il servizio non è disponibile, l’app chiede conferma prima di passare a un’alternativa e salva la scelta. Gli errori di quota vengono mostrati senza cambiare servizio.</p><p class="small"><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Ottieni una chiave API in Google AI Studio ↗</a></p><p id="apiKeyStatus" class="small muted" role="status" aria-live="polite"></p><div class="actions right"><button type="button" class="secondary" onclick="closeApiDialog()">Chiudi</button><button type="button" onclick="saveApiKey()">Salva API key</button></div></dialog>
 </section>
 
 <section id="filterBar" class="toolbar no-print hidden">
@@ -78,14 +78,13 @@ let rawEventsData=[], visibleEvents=[], currentCity='', currentView='cards', map
 const $=id=>document.getElementById(id);
 const CATEGORIES=['Concerti','Teatro','Mostre','Sagre/Cibo','Mercatini','Escursioni','Passeggiate','Ciclismo','Sport','Cultura','Fiere','Conferenze','Altro'];
 const CACHE_KEY='eventi_citta_cache_v2', ARCHIVE_KEY='eventi_citta_archive_v2', GEO_KEY='eventi_citta_geo_v1';
-const QUOTA_KEY='eventi_quota_v1', QUOTA_LIMIT=20, SEARCH_CACHE_KEY='eventi_search_cache_v1', FAV_KEY='eventi_favs_v1';
+const SEARCH_CACHE_KEY='eventi_search_cache_v1', FAV_KEY='eventi_favs_v1', MODEL_PREF_KEY='eventi_gemini_model_preference_v1', MODEL_TRANSITION_KEY='eventi_gemini_25_transition_v1';
+const GEMINI_MODELS=['gemini-2.5-flash','gemini-3.5-flash-lite','gemini-3.8-flash'];
 function todayKey(){return dateISO(new Date());}
-function quotaGet(){try{const q=JSON.parse(localStorage.getItem(QUOTA_KEY)||'null');if(q&&q.day===todayKey())return q.count||0;}catch{}return 0;}
-function quotaSet(n){try{localStorage.setItem(QUOTA_KEY,JSON.stringify({day:todayKey(),count:n}));}catch{}quotaRender();}
-function quotaInc(){quotaSet(quotaGet()+1);}
-function quotaRender(){const el=$('quotaInfo');if(!el)return;const n=quotaGet();el.textContent=`Richieste Gemini fatte oggi da questa app: ${n} / ${QUOTA_LIMIT} (stima; il conteggio ufficiale è in Google AI Studio)`;el.style.color=n>=QUOTA_LIMIT-3?'#b91c1c':'';}
 function readStoredJSON(key,fallback){try{const v=JSON.parse(localStorage.getItem(key)||'null');return v??fallback;}catch{return fallback;}}
 function getStoredApiKey(){try{return localStorage.getItem('gemini_api_key')||'';}catch{return '';}}
+function getPreferredGeminiModel(){try{let model=localStorage.getItem(MODEL_PREF_KEY);if(model==='gemini-3.5-flash'){model='gemini-3.5-flash-lite';localStorage.setItem(MODEL_PREF_KEY,model);}return GEMINI_MODELS.includes(model)?model:GEMINI_MODELS[0];}catch{return GEMINI_MODELS[0];}}
+function setPreferredGeminiModel(model){if(!GEMINI_MODELS.includes(model))return false;try{localStorage.setItem(MODEL_PREF_KEY,model);return true;}catch{return false;}}
 function searchCacheGet(k){const all=readStoredJSON(SEARCH_CACHE_KEY,{});return all&&typeof all==='object'&&!Array.isArray(all)?all[k]||null:null;}
 function searchCacheSet(k,v){try{const stored=readStoredJSON(SEARCH_CACHE_KEY,{}),all=stored&&typeof stored==='object'&&!Array.isArray(stored)?stored:{},t=todayKey();Object.keys(all).forEach(x=>{if(!x.endsWith('|'+t))delete all[x];});all[k]=v;localStorage.setItem(SEARCH_CACHE_KEY,JSON.stringify(all));}catch(e){console.warn('Cache ricerche non salvata',e);}}
 function uniqueSources(list){const seen=new Set();return list.filter(x=>x.url&&!seen.has(x.url)&&seen.add(x.url)).slice(0,20).map(x=>({url:x.url,title:x.title}));}
@@ -96,15 +95,14 @@ function toggleFav(k){const favs=getFavs();const i=favs.findIndex(x=>eventKey(x)
 function shareText(){const by={};visibleEvents.forEach(e=>(by[e.data_iso]??=[]).push(e));let t=`📍 Eventi a ${currentCity}\n`;Object.keys(by).sort().forEach(d=>{t+=`\n📅 ${new Date(d+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}\n`;by[d].forEach(e=>{t+=`• ${e.ora?e.ora+' – ':''}${e.titolo} (${e.luogo})\n`;});});return t.trim();}
 function shareWhatsApp(){if(!visibleEvents.length)return alert('Non ci sono eventi da condividere.');let t=shareText();if(t.length>3500)t=t.slice(0,3450).replace(/\n[^\n]*$/,'')+'\n…';window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank','noopener');}
 function renderApiKeyState(){const button=$('apiKeyOpenBtn');if(!button)return;const saved=!!getStoredApiKey().trim();button.textContent=saved?'API Key ✓':'API Key';button.title=saved?'Chiave API salvata in questo browser':'Nessuna chiave API salvata';button.setAttribute('aria-label',button.title);button.classList.toggle('api-key-saved',saved);}
-function openApiDialog(event){event.preventDefault();const saved=getStoredApiKey();$('apiKey').value=saved;$('apiKeyStatus').textContent=saved?'Chiave API già salvata in questo browser.':'Nessuna chiave API salvata.';const d=$('apiDialog');if(d.showModal)d.showModal();else d.setAttribute('open','');}
-function saveApiKey(){const key=$('apiKey').value.trim(),status=$('apiKeyStatus');try{if(key){localStorage.setItem('gemini_api_key',key);status.textContent='Chiave API salvata in questo browser.';}else{localStorage.removeItem('gemini_api_key');status.textContent='Chiave API rimossa dal browser.';}renderApiKeyState();}catch{status.textContent='Impossibile salvare la chiave in questo browser.';renderApiKeyState();}}
+function openApiDialog(event){event?.preventDefault?.();const saved=getStoredApiKey();$('apiKey').value=saved;$('apiKeyStatus').textContent=saved?'Chiave API già salvata in questo browser.':'Nessuna chiave API salvata.';const d=$('apiDialog');if(d.showModal)d.showModal();else d.setAttribute('open','');}
+function saveApiKey(){const key=$('apiKey').value.trim(),status=$('apiKeyStatus');try{if(key){localStorage.setItem('gemini_api_key',key);status.textContent='Chiave API salvata in questo browser.';}else{localStorage.removeItem('gemini_api_key');status.textContent='Chiave API rimossa dal browser.';}localStorage.removeItem(MODEL_TRANSITION_KEY);renderApiKeyState();}catch{status.textContent='Impossibile salvare la chiave in questo browser.';renderApiKeyState();}}
 function closeApiDialog(){const d=$('apiDialog');if(d.close)d.close();else d.removeAttribute('open');}
 document.addEventListener('DOMContentLoaded',()=>{
   $('apiKey').value=getStoredApiKey();
   renderApiKeyState();
   $('city').value=readStoredJSON('gemini_last_city','')||'';
   $('radius').value=readStoredJSON('eventi_radius','30')||'30';
-  quotaRender();
   $('city').addEventListener('input',e=>{try{localStorage.setItem('gemini_last_city',e.target.value.trim());}catch{}});
   $('radius').addEventListener('change',e=>{try{localStorage.setItem('eventi_radius',e.target.value);}catch{}});
   const cache=readStoredJSON(CACHE_KEY,null);if(Array.isArray(cache?.events)&&cache.events.length){rawEventsData=cache.events;currentCity=cache.city||$('city').value;if(importLabel(currentCity))currentCity='Eventi importati';showResults();}
@@ -112,6 +110,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 function dateISO(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function dateRange(){const a=new Date();a.setHours(0,0,0,0);const b=new Date(a);b.setDate(b.getDate()+(Number(($('periodDays')||{}).value)||14)-1);return {start:dateISO(a),end:dateISO(b)};}
 function escapeHTML(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function hideModelIdentifiers(v){return String(v??'').replace(/gemini-\d+(?:\.\d+)?-[a-z0-9-]+/gi,'modello Gemini');}
 function safeURL(value){try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)?u.href:null;}catch{return null;}}
 function normalizeCategory(c){const s=String(c||'Altro').toLowerCase();return CATEGORIES.find(x=>x.toLowerCase()===s)||'Altro';}
 function parseModelJSON(text){
@@ -183,12 +182,12 @@ function normalizeEvents(items,grounding){
 }
 async function fetchRetry(url,opts,tries=4){
   for(let i=0;i<tries;i++){
-    const r=await fetch(url,opts);quotaInc();const d=await r.json();
+    const r=await fetch(url,opts);const d=await r.json();
     if(r.ok)return{r,d};
     const msg=d?.error?.message||'';
-    if(/requests per day|PerDay/i.test(msg))quotaSet(QUOTA_LIMIT);
     const m=msg.match(/retry in ([\d.]+)s/i);
-    const retriable=r.status===503||r.status===429||/high demand|retry in/i.test(msg);
+    const dailyQuota=/requests per day|perday|daily quota|quota exceeded|exceeded.{0,40}quota|quota.{0,40}exceeded/i.test(msg);
+    const retriable=!dailyQuota&&(r.status===503||r.status===429||/high demand|retry in/i.test(msg));
     if(!retriable||i===tries-1||(m&&Number(m[1])>60))return{r,d};
     const wait=m?Number(m[1])*1000+500:2000*2**i;
     await new Promise(x=>setTimeout(x,wait));
@@ -205,14 +204,26 @@ async function fetchEvents(force=false){
       rawEventsData=c.events;currentCity=city;cityCoords=null;window.__diag=c.diag||'';
       try{localStorage.setItem(CACHE_KEY,JSON.stringify({city:currentCity,events:rawEventsData,savedAt:c.savedAt}));}catch{}
       showResults();renderSources(c.sources);
-      $('summary').textContent+=` · Risultati già cercati oggi alle ${new Date(c.savedAt).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}: nessuna richiesta usata. Premi “Nuova ricerca” per rifare la ricerca.`;
+      $('summary').textContent+=` · Risultati già cercati oggi alle ${new Date(c.savedAt).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}. Premi “Nuova ricerca” per rifare la ricerca.`;
       return;
     }
   }
-  const needed=mode==='fast'?1:3;
-  if(quotaGet()+needed>QUOTA_LIMIT&&!confirm(`Hai già fatto circa ${quotaGet()} richieste oggi su ${QUOTA_LIMIT}. Questa ricerca ne usa fino a ${needed}. Procedere comunque?`))return;
+  if(todayKey()>='2026-12-01'&&getPreferredGeminiModel()==='gemini-2.5-flash'){
+    let transitionDecision='';try{transitionDecision=localStorage.getItem(MODEL_TRANSITION_KEY)||'';}catch{}
+    if(transitionDecision==='declined'){
+      $('resultsContainer').innerHTML='<div class="status error">La ricerca è sospesa per evitare l’instradamento automatico a tariffe diverse. Apri <strong>API Key</strong> e premi “Salva API key” per visualizzare di nuovo la richiesta di conferma. Nessuna richiesta è stata inviata.</div>';return;
+    }
+    if(!confirm('Dal 1° dicembre 2026 Google instrada le richieste effettuate con il servizio attuale al suo sostituto e applica le relative tariffe. Vuoi consentire il passaggio una volta e salvarlo per le ricerche future su questo browser? Se scegli Annulla, la ricerca si ferma senza inviare richieste.')){
+      try{localStorage.setItem(MODEL_TRANSITION_KEY,'declined');}catch{}
+      $('resultsContainer').innerHTML='<div class="status error">Ricerca annullata: nessuna richiesta è stata inviata. Per riprendere, apri <strong>API Key</strong>, premi “Salva API key” e valuta di nuovo il passaggio alla prossima ricerca.</div>';return;
+    }
+    if(!setPreferredGeminiModel('gemini-3.5-flash-lite')){
+      $('resultsContainer').innerHTML='<div class="status error">Impossibile salvare la scelta in questo browser. Apri <strong>API Key</strong> e abilita la memorizzazione locale nelle impostazioni del browser. Nessuna richiesta è stata inviata.</div>';return;
+    }
+  }
+  try{window.umami?.track?.('search_started');}catch{}
   const btn=$('searchBtn');btn.disabled=true;$('refreshBtn').disabled=true;btn.textContent='Ricerca approfondita in corso…';
-  $('resultsContainer').innerHTML='<div class="status">Ricerca approfondita in corso: stiamo cercando gli eventi…<small>Modalità '+(mode==='fast'?'veloce: 1 richiesta Gemini.':'standard: 3 richieste Gemini in sequenza, può richiedere 1-2 minuti.')+'</small></div>';
+  $('resultsContainer').innerHTML='<div class="status">Ricerca approfondita in corso: stiamo cercando gli eventi…<small>Se il servizio non è disponibile, ti chiederemo conferma prima di passare a un’alternativa.</small></div>';
   $('filterBar').classList.add('hidden');$('summary').textContent='';
   const {start,end}=dateRange();
   const allGroups=[
@@ -222,7 +233,7 @@ async function fetchEvents(force=false){
   ];
   const groups=mode==='fast'?[{name:'Tutti i tipi di evento',cats:allGroups.map(g=>g.cats).join(', ')}]:allGroups;
   const categoryText=category==='Tutti'?'':`Dai priorità alla categoria "${category}" ma includi anche altri eventi pertinenti del gruppo.`;
-  const endpoint='https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
+  let stopReason='';
   const requests=groups.map(group=>async()=>{
     const prompt=`Cerca sul web gli eventi reali in programma nella città di ${city} (e, se utile, nei comuni vicini entro circa ${radius} km) dal ${start} al ${end}. Tipologie da cercare: ${group.cats}. ${categoryText}
 Restituisci fino a un massimo di ${max} eventi.
@@ -236,23 +247,43 @@ Fornisci la risposta ESCLUSIVAMENTE sotto forma di array JSON valido, senza test
 - "descrizione": breve sintesi (max 2 frasi)
 - "link": URL diretto di approfondimento o biglietti SOLO SE VERIFICATO E SICURO, altrimenti null
 - "fonte_url": URL della pagina consultata se noto, altrimenti null`;
-    const {r:response,d:data}=await fetchRetry(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':apiKey},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],tools:[{googleSearch:{}}]})});
-    if(!response.ok)throw new Error(data?.error?.message||`Errore API (${response.status}) nella ricerca ${group.name}.`);
+    let response,data;
+    const models=GEMINI_MODELS;
+    for(let modelIndex=models.indexOf(getPreferredGeminiModel());modelIndex<models.length;modelIndex++){
+      const model=models[modelIndex],endpoint=`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+      const result=await fetchRetry(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':apiKey},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],tools:[{googleSearch:{}}]})});
+      response=result.r;data=result.d;
+      if(response.ok)break;
+      const errorText=data?.error?.message||'';
+      const dailyQuota=/requests per day|perday|daily quota|quota exceeded|exceeded.{0,40}quota|quota.{0,40}exceeded/i.test(errorText);
+      if(dailyQuota){stopReason=errorText||'Quota Gemini giornaliera esaurita.';throw new Error(stopReason);}
+      const modelUnavailable=response.status===404||/model.{0,100}(not found|not available|no longer available|unavailable|unsupported)|(not found|not available|no longer available|unavailable|unsupported).{0,100}model/i.test(errorText);
+      if(modelUnavailable&&modelIndex<models.length-1){
+        const nextModel=models[modelIndex+1];
+        if(!confirm('Google segnala che il servizio configurato non è disponibile. Vuoi provare un’alternativa per questa e le prossime ricerche su questo browser? La scelta verrà salvata automaticamente.')){stopReason='Passaggio annullato. Nessuna alternativa è stata usata.';throw new Error(stopReason);}
+        if(!setPreferredGeminiModel(nextModel)){stopReason='Impossibile salvare la preferenza in questo browser.';throw new Error(stopReason);}
+        continue;
+      }
+      if(modelUnavailable)throw new Error('Il servizio non è disponibile al momento. Riprova più tardi.');
+      throw new Error(errorText||`Errore API (${response.status}) nella ricerca ${group.name}.`);
+    }
+    if(!response?.ok)throw new Error(data?.error?.message||`Errore API (${response?.status}) nella ricerca ${group.name}.`);
     const candidate=data.candidates?.[0],rawText=(candidate?.content?.parts||[]).map(p=>p.text||'').join('\n');
     if(!rawText)throw new Error(`Nessun testo restituito per ${group.name}.`);
     const parsed=parseModelJSON(rawText);if(!Array.isArray(parsed))throw new Error(`Risposta non valida per ${group.name}.`);
     return {events:parsed.slice(0,max),grounding:collectGrounding(candidate),group:group.name,rawCount:parsed.length};
   });
   try{
-    const settled=[];for(const run of requests){try{settled.push({status:'fulfilled',value:await run()});}catch(e){settled.push({status:'rejected',reason:e});}}
+    const settled=[];for(const run of requests){try{settled.push({status:'fulfilled',value:await run()});}catch(e){settled.push({status:'rejected',reason:e});if(stopReason)break;}}
+    if(stopReason)throw new Error(stopReason);
     const successes=settled.filter(x=>x.status==='fulfilled').map(x=>x.value);
-    const failures=settled.filter(x=>x.status==='rejected').map(x=>x.reason?.message||'Errore di ricerca');
+    const failures=settled.filter(x=>x.status==='rejected').map(x=>hideModelIdentifiers(x.reason?.message||'Errore di ricerca'));
     if(!successes.length)throw new Error(failures.join(' · ')||'Nessuna ricerca è andata a buon fine.');
     const combined=[],allGrounding=[];
     successes.forEach(result=>{combined.push(...result.events);allGrounding.push(...result.grounding);});
     // Deduplica tra i tre gruppi, ordina cronologicamente e applica il limite scelto dall'utente.
     const unique=normalizeEvents(combined,allGrounding).filter(e=>e.data_iso>=start&&e.data_iso<=end).slice(0,max);
-    rawEventsData=unique;currentCity=city;window.__diag=successes.map(r=>`${r.group}: ${r.rawCount} dal modello`).join(' · ')+` · scartati (doppioni, date fuori periodo o oltre il massimo selezionato): ${combined.length-unique.length}`;
+    rawEventsData=unique;currentCity=city;window.__diag=successes.map(r=>`${r.group}: ${r.rawCount} risultati`).join(' · ')+` · scartati (doppioni, date fuori periodo o oltre il massimo selezionato): ${combined.length-unique.length}`;
     // La distanza viene calcolata quando possibile, ma non si eliminano automaticamente eventi:
     // una geocodifica imprecisa non deve far sparire appuntamenti validi.
     cityCoords=null;try{cityCoords=await geocode(currentCity+', Italia');}catch(e){cityCoords=null;}
@@ -266,7 +297,7 @@ Fornisci la risposta ESCLUSIVAMENTE sotto forma di array JSON valido, senza test
       $('summary').textContent+=` · Ricerca completata (modalità ${mode==='fast'?'veloce':'standard'}). [${window.__diag}]`;
     }
   }catch(err){
-    console.error(err);$('resultsContainer').innerHTML=`<div class="status error">Errore durante la ricerca: ${escapeHTML(err.message)}<small>Controlla la connessione, la chiave API e i limiti del servizio Gemini.</small></div>`;
+    console.error(err);$('resultsContainer').innerHTML=`<div class="status error">Errore durante la ricerca: ${escapeHTML(hideModelIdentifiers(err.message))}<small>Controlla la connessione, la chiave API e i limiti del servizio Gemini.</small></div>`;
   }finally{btn.disabled=false;$('refreshBtn').disabled=false;btn.textContent='🔎 Cerca eventi';}
 }
 let lastGeoAt=0;
@@ -309,7 +340,7 @@ function setView(view){
 }
 function linkMatchesEvent(e){if(e.link_verificato!==true||!safeURL(e.link))return false;const a=new Set(titleTokens(e.titolo)),b=new Set(titleTokens(e.fonte_nome||''));let n=0;a.forEach(w=>{if(b.has(w))n++;});const min=Math.min(a.size,b.size),score=n/(a.size+b.size-n||1);return n>=2&&(score>=0.35||n===min);}
 function importLabel(s){return /^(importazione json|eventi importati)$/i.test(String(s||'').trim());}
-function archiveCityLabel(a){return importLabel(a.city)?'Eventi importati':String(a.city||'');}
+function archiveCityLabel(a){const fileLabel=String(a.label||'').trim();return fileLabel|| (importLabel(a.city)?'Eventi importati':String(a.city||''));}
 function eventSearchURL(e){const title=String(e.titolo||''),place=String(e.luogo||''),city=String(currentCity||'').trim(),key=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('it').replace(/[^a-z0-9]+/g,' ').trim(),cityKey=key(city);const parts=[title,place];if(cityKey&&!importLabel(city)&&!key(place).includes(cityKey)&&!key(title).includes(cityKey))parts.push(city);return 'https://www.google.com/search?q='+encodeURIComponent(parts.filter(Boolean).join(' '));}
 function eventCard(e){
   const date=new Date(e.data_iso+'T12:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
@@ -372,20 +403,20 @@ function renderArchive(){
   const stored=readStoredJSON(ARCHIVE_KEY,[]),archive=Array.isArray(stored)?stored:[];$('resultsContainer').innerHTML='';
   const panel=$('archivePanel');panel.classList.remove('hidden');
   panel.innerHTML='<h3>Ricerche salvate</h3><p class="muted small">Le ultime 20 ricerche vengono conservate su questo dispositivo.</p><div class="actions" style="margin:12px 0"><button class="secondary" onclick="triggerArchiveImport()">Importa file JSON</button><input id="archiveJsonInput" type="file" accept=".json,application/json" class="hidden" onchange="importArchiveJSON(event)"></div>'+
-  (archive.length?archive.map(a=>`<div class="archive-item"><div><strong>${escapeHTML(a.city)}</strong><div class="small muted">${new Date(a.date).toLocaleString('it-IT')} · ${a.count} eventi</div></div><div class="actions"><button class="secondary" onclick="loadArchive(${a.id})">Apri</button><button class="secondary" onclick="deleteArchive(${a.id})">Elimina</button></div></div>`).join(''):'<p class="muted">Nessuna ricerca archiviata.</p>')+
+  (archive.length?archive.map(a=>`<div class="archive-item"><div><strong>${escapeHTML(archiveCityLabel(a))}</strong><div class="small muted">${new Date(a.date).toLocaleString('it-IT')} · ${a.count} eventi</div></div><div class="actions"><button class="secondary" onclick="loadArchive(${a.id})">Apri</button><button class="secondary" onclick="deleteArchive(${a.id})">Elimina</button></div></div>`).join(''):'<p class="muted">Nessuna ricerca archiviata.</p>')+
   '<div class="actions right" style="margin-top:12px"><button class="secondary" onclick="clearArchive()">Svuota archivio</button></div>';
 }
 function triggerArchiveImport(){const input=$('archiveJsonInput');if(input)input.click();}
 async function importArchiveJSON(event){
   const input=event.target,file=input.files?.[0];if(!file)return;
   try{
-    const parsed=JSON.parse(await file.text());let sessions=[];
+    const parsed=JSON.parse(await file.text()),fileLabel=String(file.name||'').replace(/\.json$/i,'').trim()||'Importazione JSON';let sessions=[];
     if(Array.isArray(parsed)&&parsed.length&&parsed.every(x=>x&&Array.isArray(x.events)))sessions=parsed;
-    else if(Array.isArray(parsed))sessions=[{city:$('city').value.trim(),events:parsed}];
+    else if(Array.isArray(parsed))sessions=[{city:'Eventi importati',events:parsed}];
     else if(parsed&&Array.isArray(parsed.events))sessions=[parsed];
     else throw new Error('Il file deve contenere un elenco di eventi o un oggetto con il campo "events".');
     const now=Date.now(),imported=[];let eventCount=0;
-    sessions.forEach((session,i)=>{const events=normalizeEvents(session.events,[]);if(!events.length)return;const candidateDate=new Date(session.date||session.savedAt||Date.now()),date=Number.isNaN(candidateDate.getTime())?new Date().toISOString():candidateDate.toISOString(),savedCity=String(session.city||'').trim(),typedCity=$('city').value.trim(),eventPlace=events.find(e=>e.luogo&&e.luogo!=='Luogo da verificare')?.luogo,city=(!importLabel(savedCity)&&savedCity)||typedCity||eventPlace||'Eventi importati';imported.push({id:now+i,city,date,count:events.length,events});eventCount+=events.length;});
+    sessions.forEach((session,i)=>{const events=normalizeEvents(session.events,[]);if(!events.length)return;const candidateDate=new Date(session.date||session.savedAt||Date.now()),date=Number.isNaN(candidateDate.getTime())?new Date().toISOString():candidateDate.toISOString(),savedCity=String(session.city||'').trim(),eventPlace=events.find(e=>e.luogo&&e.luogo!=='Luogo da verificare')?.luogo,city=importLabel(savedCity)?'Eventi importati':savedCity||eventPlace||'Eventi importati',label=sessions.length>1?`${fileLabel} — ${city}`:fileLabel;imported.push({id:now+i,city,label,date,count:events.length,events});eventCount+=events.length;});
     if(!imported.length)throw new Error('Non ho trovato eventi con titolo e data validi nel file.');
     const stored=readStoredJSON(ARCHIVE_KEY,[]),archive=Array.isArray(stored)?stored:[];
     try{localStorage.setItem(ARCHIVE_KEY,JSON.stringify([...imported,...archive].slice(0,20)));}catch(e){throw new Error('Spazio browser insufficiente per salvare i dati importati.');}
